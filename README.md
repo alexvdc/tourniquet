@@ -31,7 +31,7 @@ ligne avec `ring`.
 
 ```bash
 npm run dev     # http://localhost:8123
-npm test        # 103 tests, dont les 55 preuves de référence
+npm test        # moteur, contenu (les 55 preuves rejouées) et rendu des vues
 ```
 
 Aucune dépendance à installer : le serveur de dev est un fichier de 50 lignes, et les

@@ -76,7 +76,7 @@ export const ACHIEVEMENTS = [
     test: (p) => worldDone(7, p) },
   { id: 'sans-ring', name: 'À la main', glyph: '∎', desc: 'Battre le boss final sans `ring`.',
     test: (p) => p.done.has('9.5') },
-  { id: 'integrale', name: 'Intégrale', glyph: '★', desc: 'Terminer les 41 niveaux.',
+  { id: 'integrale', name: 'Intégrale', glyph: '★', desc: `Terminer les ${LEVELS.length} niveaux.`,
     test: (p) => p.done.size >= LEVELS.length },
 ];
 
