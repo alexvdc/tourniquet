@@ -1,5 +1,7 @@
 # ⊢ Tourniquet
 
+**→ [tourniquet.netlify.app](https://tourniquet.netlify.app)**
+
 **Apprendre Lean 4 en démontrant.** 55 niveaux, de « pourquoi 2 + 2 = 4 » aux tactiques
 de décision de Mathlib. Site statique, zéro build, zéro serveur, zéro dépendance.
 
@@ -39,9 +41,17 @@ tests utilisent `node:test`. Node 18+ suffit.
 
 ## Déploiement
 
-Site statique publié à la racine. Sur Netlify : connecter le dépôt, laisser
-`netlify.toml` faire le reste (`publish = "."`, et la suite de tests comme commande de
-build — un niveau infaisable casse le déploiement, ce qui est exactement le but).
+En ligne sur [tourniquet.netlify.app](https://tourniquet.netlify.app). Site statique
+publié à la racine, aucune étape de build nécessaire.
+
+`netlify.toml` déclare `publish = "."` et prend la suite de tests comme commande de
+build : un niveau infaisable casse le déploiement, ce qui est exactement le but.
+
+Redéploiement à la main depuis le dossier :
+
+```bash
+npx netlify-cli deploy --prod --dir .
+```
 
 ## Architecture
 
