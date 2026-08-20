@@ -86,11 +86,35 @@ export function statementOf(level) {
   return `theorem ${name}${binders ? ' ' + binders : ''} : ${level.goal} := by`;
 }
 
-/** Code Lean 4 réel, à copier dans le vrai playground. */
+/**
+ * Lemmes du jeu dont le nom n'existe pas dans Mathlib. `open Nat` suffit pour
+ * `succ`, `add_succ` et compagnie ; ceux-là méritent un avertissement.
+ */
+const GAME_ONLY = ['one_eq_succ_zero', 'two_eq_succ_one', 'three_eq_succ_two',
+  'four_eq_succ_three', 'five_eq_succ_four', 'six_eq_succ_five'];
+
+/**
+ * Code Lean 4 réel, à ouvrir dans le playground. On préfixe `import Mathlib` et
+ * `open Nat` — sans quoi `succ` et `add_succ` ne sont pas en portée — et on
+ * signale les lemmes qui n'existent que dans ce jeu, plutôt que de laisser
+ * l'apprenant devant une erreur incompréhensible.
+ */
 export function leanCode(level, script) {
-  if (level.lean) return level.lean;
-  const body = script.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => '  ' + l).join('\n');
-  return `${statementOf(level)}\n${body || '  sorry'}`;
+  const header = 'import Mathlib\nopen Nat\n\n';
+  if (level.lean) return header + level.lean;
+
+  const body = script.split('\n').map((l) => l.trim()).filter(Boolean)
+    .map((l) => '  ' + l).join('\n');
+  const used = GAME_ONLY.filter((n) => script.includes(n));
+  const warning = used.length
+    ? `-- ${used.join(', ')} ${used.length > 1 ? 'sont propres' : 'est propre'} à Tourniquet :\n`
+      + '-- Mathlib ne nomme pas le dépliage des chiffres. Ici, `decide`, `norm_num`\n'
+      + '-- ou `show` font le travail.\n\n'
+    : '';
+
+  return header + warning
+    + `-- Niveau ${level.id ?? '?'} de Tourniquet\n`
+    + `${statementOf(level)}\n${body || '  sorry'}\n`;
 }
 
 export { showState, show };

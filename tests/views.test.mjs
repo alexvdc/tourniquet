@@ -140,3 +140,13 @@ test('les exemples du bac à sable se prouvent vraiment', async () => {
 });
 
 const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+test('le routeur monte la vue correspondant au fragment', async () => {
+  store.resetAll();
+  location.hash = '#/grimoire';
+  window.location.hash = '#/grimoire';
+  await import('../js/main.js'); // le module route au chargement
+  assert.match(app.textContent, /Grimoire/);
+  assert.equal(document.getElementById('rank-name').textContent, 'Curieux');
+  assert.match(document.getElementById('xp-count').textContent, /0 \/ \d+ XP/);
+});

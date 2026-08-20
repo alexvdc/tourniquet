@@ -1,7 +1,11 @@
 # Site entierement statique : rien a construire, on publie le depot tel quel.
 [build]
   publish = "."
-  command = "node --test \"tests/*.test.mjs\""
+  command = "npm test"
+
+# Le runner de tests de Node a besoin d'une version récente pour les globs.
+[build.environment]
+  NODE_VERSION = "22"
 
 [[headers]]
   for = "/*"

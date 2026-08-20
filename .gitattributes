@@ -1,0 +1,2 @@
+# Le dépôt est en LF partout : les tests et les patchs comparent du texte.
+* text=auto eol=lf
