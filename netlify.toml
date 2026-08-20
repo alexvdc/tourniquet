@@ -14,12 +14,16 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
 
+# Une heure de cache sur des modules ES sans empreinte dans le nom, c'est la
+# garantie qu'un correctif reste invisible pendant une heure — et qu'un
+# navigateur mélange un `main.js` neuf avec un moteur périmé. Le site pèse
+# 357 Ko : une revalidation par minute ne coûte rien, et l'ETag renvoie 304.
 [[headers]]
   for = "/css/*"
   [headers.values]
-    Cache-Control = "public, max-age=3600"
+    Cache-Control = "public, max-age=60, must-revalidate"
 
 [[headers]]
   for = "/js/*"
   [headers.values]
-    Cache-Control = "public, max-age=3600"
+    Cache-Control = "public, max-age=60, must-revalidate"

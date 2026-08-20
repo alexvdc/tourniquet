@@ -14,7 +14,10 @@
   /* Craie */
   --chalk: #e7ebf1;
   --chalk-dim: #9dabbd;
-  --chalk-faint: #667689;
+  /* #667689 ne donnait que 3,8:1 sur l'ardoise : sous le seuil AA de 4,5:1,
+     et c'est la couleur des petites lignes en monospace, dont les `+` et `=`
+     sont les premiers à disparaître. Celle-ci monte à 5,1:1. */
+  --chalk-faint: #7d8b9e;
 
   /* Vélin */
   --vellum: #ece2cd;
