@@ -2,8 +2,11 @@
 
 const T_ORDER = ['rfl', 'exact', 'apply', 'intro', 'intros', 'cases', 'constructor',
   'use', 'rw', 'norm_num', 'left', 'right'];
+// Le dernier monde n'a plus de verrou : ce sont littéralement toutes les
+// tactiques du moteur, pour que le Grimoire dise vrai.
 const T_ALL = [...T_ORDER, 'induction', 'simp', 'have', 'ring', 'revert', 'unfold',
-  'exfalso', 'contradiction', 'trivial', 'repeat', 'sorry'];
+  'exfalso', 'contradiction', 'trivial', 'repeat', 'sorry', 'decide', 'assumption',
+  'all_goals', 'intros'];
 
 const ADD_ALL = ['add_zero', 'add_succ', 'zero_add', 'succ_add', 'add_assoc',
   'add_comm', 'add_right_comm'];
@@ -128,7 +131,7 @@ C’est la première preuve du jeu où tu construis un objet (le témoin \`x + y
       title: 'Enchaîner',
       ctx: ['a b : ℕ', 'hab : a ≤ b'],
       goal: 'a ≤ succ b',
-      lemmas: ['le_iff_exists_add', 'le_refl', 'le_trans', 'le_succ_self', ...ADD_ALL],
+      lemmas: ['le_iff_exists_add', 'le_refl', 'le_trans', 'le_succ_self', 'zero_le', ...ADD_ALL],
       tactics: T_ORDER,
       arith: true,
       xp: 40,

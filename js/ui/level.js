@@ -259,6 +259,9 @@ export function renderLevel(host, id) {
     } else if (!script.trim()) {
       feedback.className = 'feedback feedback--wait';
       feedback.textContent = 'Écris une tactique. La fenêtre d’objectif suit ton curseur.';
+    } else if (result.warning) {
+      feedback.className = 'feedback feedback--err';
+      feedback.textContent = `Impasse : ${result.warning}`;
     } else {
       feedback.className = 'feedback feedback--wait';
       const n = result.final.goals.length;

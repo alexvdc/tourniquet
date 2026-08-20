@@ -2,7 +2,7 @@
 
 import { h, mount, md, ABBREVS, toast, expandAbbrev, playgroundUrl, copyText } from './dom.js';
 import { renderGoals } from './goal.js';
-import { LEMMAS, lemmaType, BY_NAME } from '../engine/lib.js';
+import { LEMMAS, lemmaType, ALWAYS } from '../engine/lib.js';
 import { show } from '../engine/printer.js';
 import { runProof } from '../engine/proof.js';
 import { TACTIC_NAMES } from '../engine/tactics.js';
@@ -11,6 +11,24 @@ import { LEVELS } from '../content/index.js';
 import * as store from '../state.js';
 
 const KIND_LABEL = { axiom: 'axiome', thm: 'théorème', struct: 'constructeur' };
+
+// Où chaque chose devient disponible : sans cette indication, le Grimoire
+// donne envie d'utiliser des lemmes qu'un niveau donné n'a pas débloqués.
+const firstWorld = (predicate) => {
+  const hit = LEVELS.filter(predicate).map((l) => l.world);
+  return hit.length ? Math.min(...hit) : null;
+};
+
+const lemmaAvailability = (name) => {
+  if (ALWAYS.includes(name)) return 'partout';
+  const w = firstWorld((l) => (l.lemmas ?? []).includes(name));
+  return w === null ? 'bac à sable' : `dès le monde ${w}`;
+};
+
+const tacticAvailability = (names) => {
+  const w = firstWorld((l) => (l.tactics ?? []).some((t) => names.includes(t)));
+  return w === null ? 'bac à sable' : `dès le monde ${w}`;
+};
 
 /* ═════════════════════════════════════════════════════════════ Grimoire */
 
@@ -26,6 +44,7 @@ export function renderGrimoire(host) {
     h('div.entry__head',
       h('span.entry__name', { text: t.name }),
       h('span.badge.badge--struct', 'tactique'),
+      h('span.chip__note', { text: tacticAvailability(t.name.split(/\s*\/\s*/).map((x) => x.trim())) }),
       h('span.entry__stmt', { text: t.syntax[0] })),
     t.syntax.length > 1
       ? h('div.chiprow', ...t.syntax.slice(1).map((s) => h('span.chip', { text: s })))
@@ -36,7 +55,8 @@ export function renderGrimoire(host) {
     h('div.entry__head',
       h('span.entry__name', { text: l.name }),
       h('span', { class: `badge badge--${l.kind}`, text: KIND_LABEL[l.kind] ?? l.kind }),
-      h('span.chip__note', { text: l.group })),
+      h('span.chip__note', { text: l.group }),
+      h('span.chip__note', { text: '· ' + lemmaAvailability(l.name) })),
     h('pre.entry__stmt', { text: show(lemmaType(l)) }),
     h('div.entry__doc', { html: md(l.doc) }));
 
@@ -190,6 +210,9 @@ export function renderSandbox(host) {
     } else if (result.sorried) {
       feedback.className = 'feedback feedback--err';
       feedback.textContent = 'Fermé par `sorry` : ça ne compte pas.';
+    } else if (result.warning) {
+      feedback.className = 'feedback feedback--err';
+      feedback.textContent = `Impasse : ${result.warning}`;
     } else {
       feedback.className = 'feedback feedback--wait';
       const n = result.final.goals.length;

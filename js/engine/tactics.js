@@ -239,13 +239,26 @@ def('induction', 'name', (state, rest, env) => {
 // ── cases ──────────────────────────────────────────────────────────────────
 def('cases', 'name', (state, rest, env) => {
   const goal = state.goals[0];
-  const m = rest.trim().match(/^(\S+)(?:\s+with\s+(\S+)(?:\s+(\S+))?)?$/);
-  if (!m) fail('`cases` attend une hypothèse, par exemple `cases h` ou `cases h with hp hq`.');
-  const [, name, n1, n2] = m;
+  // `cases h`, `cases h with a b`, mais aussi `cases em p with hp hnp` : on
+  // découpe d'abord le `with`, le reste est un terme quelconque — comme en Lean,
+  // où l'on peut raisonner par cas sur n'importe quelle disjonction.
+  const split = rest.trim().match(/^([\s\S]+?)(?:\s+with\s+(\S+)(?:\s+(\S+))?)?$/);
+  if (!split) fail('`cases` attend une hypothèse ou un terme, par exemple `cases h` ou `cases em p with hp hnp`.');
+  const [, subject, n1, n2] = split;
+  const name = subject.trim();
+
   const hyp = lookupHyp(goal.ctx, name);
-  if (!hyp) fail(`aucune hypothèse ne s’appelle \`${name}\`.`);
-  const others = goal.ctx.filter((h) => h.name !== name);
-  const t = whnfHead(hyp.type);
+  let type;
+  if (hyp) {
+    type = hyp.type;
+  } else {
+    // Pas une hypothèse : on élabore le terme et on décompose son type. Le
+    // contexte n'y perd rien, puisqu'il n'y avait rien à retirer.
+    const { type: inferred } = typeOfTerm(name, env, goal, 'terme à décomposer');
+    type = inferred;
+  }
+  const others = hyp ? goal.ctx.filter((h) => h.name !== name) : goal.ctx;
+  const t = whnfHead(type);
 
   const and = match(t, 'And', 2);
   if (and) {
@@ -279,7 +292,9 @@ def('cases', 'name', (state, rest, env) => {
       [...others, { name: w, type: ex[0].t }, { name: hw, type: subst(ex[0].b, ex[0].x, Var(w)) }],
       goal.target)]);
   }
-  if (alphaEq(hyp.type, NAT)) {
+  // La coupure sur ℕ substitue la variable dans l'objectif : elle n'a de sens
+  // que pour une hypothèse du contexte, pas pour un terme quelconque.
+  if (hyp && alphaEq(type, NAT)) {
     const zero = mkGoal(others, subst(goal.target, name, Lit(0)));
     const k = freshHypName(n1 ?? name, others);
     const succ = mkGoal([...others, { name: k, type: NAT }],
@@ -287,7 +302,7 @@ def('cases', 'name', (state, rest, env) => {
     return replaceFirst(state, [zero, succ]);
   }
   if (alphaEq(t, FALSE)) return replaceFirst(state, []);
-  fail(`\`cases\` ne sait pas décomposer \`${show(hyp.type)}\`. Il travaille sur ∧, ∨, ↔, ∃, ℕ et False.`);
+  fail(`\`cases\` ne sait pas décomposer \`${show(type)}\`. Il travaille sur ∧, ∨, ↔, ∃, ℕ et False.`);
 });
 
 // ── constructor / left / right / use ───────────────────────────────────────

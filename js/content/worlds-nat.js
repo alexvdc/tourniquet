@@ -248,6 +248,75 @@ Quand la dernière tour de \`succ\` coïncide, \`rw\` conclut par \`rfl\` et le 
         'rw [add_zero]',
       ],
     },
+    {
+      id: '1.8',
+      name: 'deux_nest_pas_zero',
+      title: 'Zéro n’est le successeur de personne',
+      ctx: [],
+      goal: '2 ≠ 0',
+      lemmas: [...ADD, ...NUMS, 'succ_ne_zero'],
+      tactics: ['rfl', 'rw', 'exact'],
+      xp: 30,
+      brief: `Après le boss, les deux axiomes de Peano qu’on n’a pas encore sortis. Voici le premier :
+
+\`\`\`
+succ_ne_zero : ∀ (a : ℕ), succ a ≠ 0
+\`\`\`
+
+Il a l’air anodin, il est fondamental : sans lui, rien n’empêcherait ℕ de boucler. Un ensemble à trois éléments où \`succ 2 = 0\` satisfait toutes les autres règles que tu as utilisées jusqu’ici. C’est cet axiome — et lui seul — qui rend ℕ infini.
+
+Deux choses à savoir pour l’utiliser :
+
+- \`a ≠ b\` est une **notation** pour \`a = b → False\`. Il n’y a pas de « différent » primitif.
+- \`succ_ne_zero\` commence par un \`∀\`, donc \`succ_ne_zero 1\` est déjà une preuve : celle de \`succ 1 ≠ 0\`. On applique un théorème à ses arguments exactement comme une fonction.
+
+Il ne reste qu’à faire coïncider l’objectif avec l’axiome.`,
+      examples: [
+        { code: 'exact succ_ne_zero 1', note: 'L’axiome, appliqué à `1` : une preuve de `succ 1 ≠ 0`.' },
+      ],
+      hints: [
+        '`2 ≠ 0` se lit `2 = 0 → False`. L’axiome dit exactement cela, mais d’un successeur.',
+        'Déplie donc `2` en `succ 1`.',
+        'Puis donne l’axiome appliqué au bon argument : `exact succ_ne_zero 1`.',
+      ],
+      sol: ['rw [two_eq_succ_one]', 'exact succ_ne_zero 1'],
+    },
+    {
+      id: '1.9',
+      name: 'simplifier_une_somme',
+      title: 'Simplifier des deux côtés',
+      ctx: ['a b : ℕ', 'h : a + 1 = b + 1'],
+      goal: 'a = b',
+      lemmas: [...ADD, ...NUMS, 'succ_inj'],
+      tactics: ['rfl', 'rw', 'exact'],
+      xp: 35,
+      brief: `Le dernier axiome de Peano : \`succ\` est **injective**.
+
+\`\`\`
+succ_inj : ∀ (a b : ℕ), succ a = succ b → a = b
+\`\`\`
+
+C’est lui qui autorise le geste que tout le monde fait sans y penser : barrer la même chose des deux côtés d’une égalité.
+
+Nouveauté de tactique, et elle va beaucoup servir : \`rw [...] at h\` réécrit **dans une hypothèse** au lieu de l’objectif. Ici, l’objectif \`a = b\` n’a rien à simplifier ; tout le travail est dans \`h\`.
+
+Le plan : transforme \`h\` en \`succ a = succ b\`, puis applique l’injectivité. Note que \`succ_inj\` a une hypothèse — donc \`succ_inj a b h\` est une preuve complète de \`a = b\`, l’axiome appliqué à ses trois arguments.`,
+      examples: [
+        { code: 'rw [add_zero] at h', note: 'Réécrit dans l’hypothèse `h`, pas dans l’objectif.' },
+        { code: 'exact succ_inj a b h', note: 'L’injectivité, appliquée à ses arguments et à la preuve.' },
+      ],
+      hints: [
+        'Tout se passe dans `h` : ajoute `at h` à tes réécritures.',
+        'Déplie `1`, puis sors les deux `succ` avec `add_succ`, puis nettoie les `+ 0`.',
+        '`h` vaut alors `succ a = succ b` : conclus par `exact succ_inj a b h`.',
+      ],
+      sol: [
+        'rw [one_eq_succ_zero] at h',
+        'rw [add_succ, add_succ] at h',
+        'rw [add_zero, add_zero] at h',
+        'exact succ_inj a b h',
+      ],
+    },
   ],
 };
 
@@ -496,7 +565,11 @@ Récurrence sur \`c\`, puis un enchaînement où \`add_assoc\` vient conclure : 
       xp: 70,
       brief: `Le boss du monde 3, et le jumeau de celui du monde 2. Même structure de preuve, mêmes ingrédients : une version gauche (\`succ_mul\`), une version droite (\`mul_succ\`), et une récurrence qui les fait se rejoindre.
 
-Si tu as compris \`add_comm\`, tu tiens celui-ci en trois lignes. C’est le signe qu’une méthode est bien apprise : la deuxième fois, c’est presque de la routine.`,
+Si tu as compris \`add_comm\`, tu tiens celui-ci en trois lignes. C’est le signe qu’une méthode est bien apprise : la deuxième fois, c’est presque de la routine.
+
+Regarde quand même ce que tu es en train d’utiliser, parce que c’est le cœur du monde 3 : \`zero_mul\` et \`succ_mul\` ne sont pas des axiomes. Tu les as démontrés, par récurrence, à partir des deux seules équations de définition de \`*\`. Le cas de base de cette preuve-ci repose donc sur une récurrence antérieure, et le cas successeur sur une autre. C’est une pile, pas une liste.
+
+Un mot sur ce que la commutativité *n’est pas*. Ce n’est pas une évidence sur les nombres : c’est une propriété de la définition. Si tu définissais \`a * b\` comme « a répété b fois » sur des mots au lieu d’entiers — la concaténation — l’associativité tiendrait encore, et la commutativité tomberait. Formaliser, c’est apprendre lesquelles de nos évidences dépendent de quoi.`,
       examples: [{ code: 'induction b', note: 'Comme pour `add_comm` : la récurrence porte sur la seconde variable.' }],
       hints: [
         '`induction b`.',

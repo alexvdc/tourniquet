@@ -77,7 +77,7 @@ export function resetAll() {
   write({ ...EMPTY });
 }
 
-/** Export/import : pour ne pas perdre 55 preuves en changeant de navigateur. */
+/** Export/import : pour ne pas perdre 59 preuves en changeant de navigateur. */
 export const exportSave = () => JSON.stringify(read(), null, 2);
 
 export function importSave(json) {

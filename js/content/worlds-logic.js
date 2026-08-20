@@ -219,7 +219,9 @@ Cette exigence a une conséquence célèbre : \`p ∨ ¬p\` n’est **pas** dém
       xp: 30,
       brief: `Pour **casser** un \`∨\` en hypothèse, c’est encore \`cases\` — mais cette fois il produit **deux objectifs** : un où l’hypothèse gauche est vraie, un où c’est la droite. Il faut conclure dans les deux.
 
-C’est le raisonnement par cas, et c’est la raison pour laquelle \`∨\` est plus lourd que \`∧\` : une paire, on la lit ; une alternative, il faut la traiter deux fois.`,
+C’est le raisonnement par cas, et c’est la raison pour laquelle \`∨\` est plus lourd que \`∧\` : une paire, on la lit ; une alternative, il faut la traiter deux fois.
+
+Dans chaque branche, tu construis le \`∨\` de l’objectif avec \`left\` ou \`right\` — et ce ne sera pas le même côté des deux fois.`,
       examples: [{ code: 'cases h with hp hq', note: 'Deux objectifs : un par branche.' }],
       hints: [
         '`intro h` puis `cases h with hp hq`.',
@@ -296,6 +298,79 @@ Prends ton temps. Douze lignes, mais aucune n’est nouvelle.`,
         'cases hpq with hp hq',
         'exact hnp hp',
         'exact hnq hq',
+      ],
+    },
+    {
+      id: '6.8',
+      name: 'contraposee',
+      title: 'La contraposée',
+      ctx: ['p q : Prop'],
+      goal: '(p → q) → ¬q → ¬p',
+      lemmas: ['absurd'],
+      tactics: T_CONN,
+      logic: true,
+      xp: 35,
+      brief: `« Si p implique q, alors non-q implique non-p. » Le raisonnement par contraposition, celui qu’on utilise sans le nommer dès qu’on dit « sinon on aurait… ».
+
+Un outil nouveau pour le confort :
+
+\`\`\`
+absurd : ∀ {p q : Prop}, p → ¬p → q
+\`\`\`
+
+Donne-lui une proposition **et** sa négation, il te rend n’importe quoi. C’est la formalisation de « c’est absurde, donc tout ce que tu veux ».
+
+Remarque, parce qu’elle prépare le niveau suivant : cette implication-ci est valable **constructivement**. Sa réciproque — de \`¬q → ¬p\` déduire \`p → q\` — ne l’est pas. Il faudra un axiome.`,
+      examples: [
+        { code: 'exact absurd (hpq hp) hnq', note: 'On a `q` et `¬q` : donc n’importe quoi, y compris `False`.' },
+      ],
+      hints: [
+        'Trois hypothèses à introduire : `intro hpq hnq hp`.',
+        'L’objectif devient `False`. Or `hpq hp` prouve `q`, et `hnq` le nie.',
+        '`exact absurd (hpq hp) hnq`.',
+      ],
+      sol: ['intro hpq hnq hp', 'exact absurd (hpq hp) hnq'],
+    },
+    {
+      id: '6.9',
+      name: 'tiers_exclu',
+      title: 'Le tiers exclu',
+      ctx: ['p q : Prop'],
+      goal: '(p → q) → ¬p ∨ q',
+      lemmas: ['em', 'not_not'],
+      tactics: [...T_CONN, 'rw'],
+      logic: true,
+      xp: 45,
+      brief: `Tout ce que tu as démontré depuis le monde 5 était **constructif** : chaque preuve construit effectivement l’objet qu’elle annonce. Une preuve de \`p ∨ q\` dit *lequel* des deux.
+
+Cet énoncé-ci ne l’est pas. Pour choisir entre \`¬p\` et \`q\`, il faudrait savoir si \`p\` est vraie — et rien ne le permet en général. Les mathématiques classiques ajoutent donc un axiome :
+
+\`\`\`
+em      : ∀ (p : Prop), p ∨ ¬p
+not_not : ∀ (p : Prop), ¬¬p ↔ p
+\`\`\`
+
+Les deux sont équivalents, et tous deux **indémontrables** sans l’autre. C’est le fameux tiers exclu : ou bien \`p\`, ou bien sa négation, sans troisième possibilité.
+
+Le geste à retenir : \`em p\` est une preuve de \`p ∨ ¬p\`, donc un objet qu’on peut décomposer. \`cases\` accepte n’importe quel terme, pas seulement une hypothèse du contexte — d’où \`cases em p with hp hnp\`, qui ouvre les deux mondes possibles.
+
+Pour la petite histoire : Mathlib est classique, elle utilise cet axiome sans réserve. Mais Lean sait suivre à la trace les théorèmes qui en dépendent — \`#print axioms mon_theoreme\` te le dira.`,
+      examples: [
+        { code: 'cases em p with hp hnp', note: 'Ouvre deux objectifs : celui où `p` est vraie, celui où elle est fausse.' },
+        { code: 'rw [not_not] at h', note: 'L’autre visage de l’axiome : efface une double négation.' },
+      ],
+      hints: [
+        'Introduis l’implication, puis raisonne par cas sur `em p`.',
+        'Si `p` est vraie, c’est le côté droit du ∨ qu’il faut prouver.',
+        'Si `p` est fausse, tu as déjà exactement `¬p`.',
+      ],
+      sol: [
+        'intro hpq',
+        'cases em p with hp hnp',
+        'right',
+        'exact hpq hp',
+        'left',
+        'exact hnp',
       ],
     },
   ],

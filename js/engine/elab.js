@@ -11,6 +11,7 @@ import {
 } from './expr.js';
 import { show } from './printer.js';
 import { defEq, norm, whnfHead } from './reduce.js';
+import { BY_NAME } from './lib.js';
 
 export class ElabError extends Error {
   constructor(msg) { super(msg); this.name = 'ElabError'; }
@@ -168,7 +169,15 @@ export function infer(e, env, sub = new Map()) {
       if (name === 'Nat.succ') return Pi('_', NAT, NAT);
       if (name === 'Nat.zero') return NAT;
       if (name === 'True' || name === 'False') return PROP;
-      throw new ElabError(`identifiant inconnu : \`${name}\``);
+      // Distinguer « ce nom n'existe pas » de « ce nom existe mais n'est pas
+      // encore débloqué » : dans le second cas l'apprenant a la bonne idée trop
+      // tôt, et le lui dire vaut mieux que de le laisser douter du nom.
+      if (BY_NAME.has(name)) {
+        throw new ElabError(`\`${name}\` existe bien, mais ce niveau ne l’a pas encore débloqué.`
+          + `\nCe qui est disponible ici : ${[...env.lib.keys()].join(', ')}.`);
+      }
+      throw new ElabError(`identifiant inconnu : \`${name}\`.`
+        + '\nCe n’est ni une hypothèse du contexte, ni un lemme débloqué.');
     }
     case 'app': {
       const { head, args } = unfold(e);

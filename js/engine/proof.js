@@ -3,6 +3,8 @@
 // solution de référence.
 
 import { parse } from './parser.js';
+import { match } from './expr.js';
+import { norm } from './reduce.js';
 import { show, showState } from './printer.js';
 import { buildLib } from './lib.js';
 import { initialState, runTactic, TacticError } from './tactics.js';
@@ -70,6 +72,8 @@ export function runProof(script, level) {
     solved: !error && state.goals.length === 0 && !state.sorried,
     sorried: state.sorried,
     error,
+    // Diagnostic : l'objectif restant est-il franchement faux ?
+    warning: error ? null : diagnose(state),
     env,
   };
 }
@@ -78,6 +82,41 @@ const stripComment = (l) => {
   const i = l.indexOf('--');
   return i < 0 ? l : l.slice(0, i);
 };
+
+const CMP = {
+  'Nat.le': [(a, b) => a <= b, '≤'], 'Nat.lt': [(a, b) => a < b, '<'],
+  'Nat.ge': [(a, b) => a >= b, '≥'], 'Nat.gt': [(a, b) => a > b, '>'],
+};
+
+/**
+ * Un objectif restant est-il carrément *faux* ? Quand un apprenant se trompe de
+ * témoin (`use 4` au lieu de `use 3`), aucune tactique n'échoue : il se retrouve
+ * juste devant `4 + 2 = 5`, et peut chercher longtemps une preuve qui n'existe
+ * pas. Autant le lui dire.
+ * @returns {string|null} message à afficher, ou null
+ */
+export function diagnose(state) {
+  const opts = { arith: true };
+  for (const goal of state.goals) {
+    const t = norm(goal.target, opts);
+    const eq = match(t, 'Eq', 2);
+    if (eq && eq[0].k === 'lit' && eq[1].k === 'lit' && eq[0].v !== eq[1].v) {
+      return `l’objectif \`${show(goal.target)}\` est faux : à gauche ${eq[0].v}, à droite ${eq[1].v}.`;
+    }
+    const not = match(t, 'Not', 1);
+    const ne = not && match(norm(not[0], opts), 'Eq', 2);
+    if (ne && ne[0].k === 'lit' && ne[1].k === 'lit' && ne[0].v === ne[1].v) {
+      return `l’objectif \`${show(goal.target)}\` est faux : les deux membres valent ${ne[0].v}.`;
+    }
+    for (const [name, [op, sym]] of Object.entries(CMP)) {
+      const c = match(t, name, 2);
+      if (c && c[0].k === 'lit' && c[1].k === 'lit' && !op(c[0].v, c[1].v)) {
+        return `l’objectif \`${show(goal.target)}\` est faux : ${c[0].v} ${sym} ${c[1].v} ne tient pas.`;
+      }
+    }
+  }
+  return null;
+}
 
 /** Énoncé du niveau au format Lean, pour l'en-tête de l'éditeur. */
 export function statementOf(level) {

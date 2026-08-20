@@ -100,10 +100,12 @@ test('une tactique verrouillée est refusée', () => {
   assert.match(r.error.message, /pas encore débloquée/);
 });
 
-test('un lemme non débloqué reste inconnu', () => {
+test('un lemme non débloqué est signalé comme tel, pas comme inexistant', () => {
   const level = { ctx: ['a b : ℕ'], goal: 'a + b = b + a', lemmas: ['add_zero'] };
   const r = runProof('rw [add_comm]', level);
-  assert.match(r.error.message, /inconnu/);
+  assert.match(r.error.message, /existe bien, mais ce niveau/);
+  const inconnu = runProof('rw [add_commutatif]', level);
+  assert.match(inconnu.error.message, /identifiant inconnu/);
 });
 
 test('sorry ferme l’objectif mais marque la preuve', () => {
@@ -150,6 +152,17 @@ test('l’instanciation ne capture pas une variable homonyme du liant', () => {
   const hyp = r.final.goals[0].ctx.find((x) => x.name === 'h');
   assert.match(show(hyp.type), /b = a \+ /);
   assert.doesNotMatch(show(hyp.type), /b = a \+ b/);
+});
+
+test('un objectif numériquement faux est diagnostiqué', () => {
+  const level = { goal: '∃ (n : ℕ), n + 2 = 5', lemmas: ['add_zero'], arith: true,
+    tactics: ['use', 'rfl', 'norm_num'] };
+  const bon = runProof('use 3', level);
+  assert.equal(bon.solved, true);
+  assert.equal(bon.warning, null);
+  const mauvais = runProof('use 4', level);
+  assert.equal(mauvais.error, null, 'aucune tactique n’échoue : c’est bien le problème');
+  assert.match(mauvais.warning, /est faux : à gauche 6, à droite 5/);
 });
 
 test('buildLib refuse un lemme inexistant', () => {

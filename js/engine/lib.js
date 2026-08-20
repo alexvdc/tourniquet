@@ -129,7 +129,7 @@ export function lemmaType(entry) {
 export const BY_NAME = new Map(LEMMAS.map((l) => [l.name, l]));
 
 /** Toujours accessibles : les briques du langage lui-même. */
-export const ALWAYS = ['And.intro', 'And.left', 'And.right', 'Or.inl', 'Or.inr',
+export const ALWAYS = ['And.intro', 'And.left', 'And.right', 'Or.inl', 'Or.inr', 'Or.elim',
   'Iff.intro', 'Iff.mp', 'Iff.mpr', 'False.elim', 'Eq.symm', 'Eq.trans', 'trivial'];
 
 /**

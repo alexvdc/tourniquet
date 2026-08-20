@@ -2,7 +2,7 @@
 
 **→ [tourniquet.netlify.app](https://tourniquet.netlify.app)**
 
-**Apprendre Lean 4 en démontrant.** 55 niveaux, de « pourquoi 2 + 2 = 4 » aux tactiques
+**Apprendre Lean 4 en démontrant.** 59 niveaux, de « pourquoi 2 + 2 = 4 » aux tactiques
 de décision de Mathlib. Site statique, zéro build, zéro serveur, zéro dépendance.
 
 > Le nom vient du symbole `⊢`, le *tourniquet*, qui sépare ce qu'on sait de ce qu'il
@@ -19,12 +19,12 @@ ligne avec `ring`.
 | Monde | Sujet | Ce qu'on y démontre |
 |---|---|---|
 | 0 | Le Tableau | lire une fenêtre d'objectif, `rfl`, `exact`, `rw` |
-| 1 | Peano | les axiomes de `+`, et **2 + 2 = 4** en quatre réécritures |
+| 1 | Peano | les axiomes de `+`, **2 + 2 = 4** en quatre réécritures, et l'injectivité de `succ` |
 | 2 | La Récurrence | `induction`, `zero_add`, `add_assoc`, `add_comm` |
 | 3 | Le Produit | `mul_add`, `mul_comm`, distributivité |
 | 4 | Les Puissances | `pow_add`, puis la découverte de `ring` |
 | 5 | L'Implication | Curry–Howard, `intro`, `apply`, le combinateur S |
-| 6 | Les Connecteurs | `∧ ∨ ¬ ↔`, `cases`, `constructor`, De Morgan |
+| 6 | Les Connecteurs | `∧ ∨ ¬ ↔`, `cases`, `constructor`, De Morgan, et le tiers exclu |
 | 7 | Les Quantificateurs | `∀ ∃`, `use`, pourquoi ∀∃ ≠ ∃∀ |
 | 8 | L'Ordre | `≤` comme `∃`, transitivité |
 | 9 | Le Vrai Lean | `simp`, `norm_num`, `have`, installer Lean, et l'identité remarquable à la main |
@@ -33,7 +33,7 @@ ligne avec `ring`.
 
 ```bash
 npm run dev     # http://localhost:8123
-npm test        # moteur, contenu (les 55 preuves rejouées) et rendu des vues
+npm test        # moteur, contenu (les 59 preuves rejouées) et rendu des vues
 npm run audit   # rendu réel dans Chrome : débordements, contrastes, console
 ```
 
@@ -92,7 +92,7 @@ onglet, et sous Windows une fenêtre ne descend pas sous ~500 px — c'est
 `Emulation.setDeviceMetricsOverride` qui fixe la largeur.
 
 Le moteur ne dépend de rien et ne connaît pas le navigateur : c'est ce qui permet de
-rejouer les 55 solutions de référence dans la CI.
+rejouer les 59 solutions de référence dans la CI.
 
 ### Ajouter un niveau
 

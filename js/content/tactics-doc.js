@@ -50,6 +50,24 @@ La même tactique introduit un \`∀\` — « soit \`n\` un entier quelconque »
 \`intros\` introduit tout ce qui peut l’être, sans nommer. Pratique, mais les noms générés rendent la preuve illisible : à éviter dans du code qu’on relira.`,
   },
   {
+    name: 'intros',
+    group: 'Structure',
+    world: 5,
+    syntax: ['intros'],
+    doc: `Introduit tout ce qui peut l’être, sans rien nommer. Pratique pour déblayer, mais les noms qu’elle invente rendent la suite illisible : dans une preuve qu’on relira, préfère \`intro\` avec des noms choisis.
+
+Dans Mathlib, la version moderne s’écrit \`intro\` avec plusieurs noms, ou \`rintro\` qui décompose au passage.`,
+  },
+  {
+    name: 'assumption',
+    group: 'Fondations',
+    world: 6,
+    syntax: ['assumption'],
+    doc: `Cherche dans le contexte une hypothèse qui *est* l’objectif, et clôt s’elle existe. C’est \`exact\` sans avoir à lire le nom.
+
+Commode quand le contexte est encombré, ou après une tactique qui a inventé des noms. Mais une preuve pleine d’\`assumption\` ne se relit pas : on ne sait plus de quoi elle parle.`,
+  },
+  {
     name: 'apply',
     group: 'Structure',
     world: 5,
@@ -201,6 +219,24 @@ Dans le vrai Lean, \`ring\` produit un terme de preuve que le noyau revérifie. 
     doc: `Calcule. Évalue les expressions numériques closes, compare, et clôt l’objectif — ou échoue en disant que c’est faux. Gère aussi les inégalités entre chiffres.
 
 \`decide\` est un cousin : elle s’applique aux énoncés *décidables*, c’est-à-dire ceux pour lesquels un algorithme peut répondre en temps fini. Dans Mathlib, \`omega\` (arithmétique linéaire entière) et \`linarith\` (inégalités linéaires) sont les deux autres à connaître absolument.`,
+  },
+  {
+    name: 'decide',
+    group: 'Automatisation',
+    world: 7,
+    syntax: ['decide'],
+    doc: `Tranche un énoncé *décidable* : un énoncé pour lequel il existe un algorithme qui répond en temps fini. Dans ce jeu, elle fait le même travail que \`norm_num\` — du calcul sur des valeurs concrètes.
+
+Dans le vrai Lean, la distinction est plus profonde : \`decide\` demande une instance \`Decidable\` de l’énoncé, exécute la procédure de décision, et le noyau revérifie le résultat. C’est pour ça qu’elle marche sur \`2 + 2 = 4\` mais jamais sur \`∀ (n : ℕ), n + 0 = n\` : une infinité de cas n’est pas décidable par énumération.`,
+  },
+  {
+    name: 'all_goals',
+    group: 'Automatisation',
+    world: 9,
+    syntax: ['all_goals rfl', 'all_goals simp'],
+    doc: `Applique la même tactique à **tous** les objectifs ouverts, au lieu du premier seulement. Utile après une récurrence ou un \`constructor\` dont les branches se ferment de la même façon.
+
+Mathlib a toute une famille de ces combinateurs : \`<;>\` enchaîne, \`any_goals\` tolère les échecs, \`focus\` isole. Ils rendent les preuves courtes et, mal utilisés, illisibles.`,
   },
   {
     name: 'repeat',
