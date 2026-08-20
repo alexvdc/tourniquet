@@ -318,6 +318,7 @@
 /* ─────────────────────────────────────────────── le manuscrit (vélin) */
 
 .manuscript {
+  min-width: 0;
   background: var(--vellum);
   background-image: linear-gradient(180deg, #f3ebd9 0%, var(--vellum) 22%, var(--vellum-deep) 100%);
   color: var(--sepia);
@@ -351,6 +352,7 @@
 }
 .manuscript pre {
   margin: 1em 0;
+  max-width: 100%;
   padding: 0.8rem 0.9rem;
   overflow-x: auto;
   background: rgba(36, 31, 22, 0.06);

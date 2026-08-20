@@ -225,19 +225,25 @@ export function renderLevel(host, id) {
       return;
     }
 
-    // gutter
+    // Marge. Une instruction peut couvrir plusieurs lignes (`calc`) : la
+    // première porte le verdict, les suivantes une barre de continuation.
     const lines = script.split('\n');
-    const byLine = new Map(result.steps.slice(1).map((s) => [s.line, s]));
-    const errLine = result.error?.line ?? null;
+    const byLine = new Map();
+    for (const s of result.steps.slice(1)) {
+      byLine.set(s.line, { step: s, cont: false });
+      for (let l = s.line + 1; l <= (s.endLine ?? s.line); l++) {
+        byLine.set(l, { step: s, cont: true });
+      }
+    }
     const cl = caretLine();
     mount(gutter, ...lines.map((line, i) => {
-      const step = byLine.get(i);
+      const entry = byLine.get(i);
       const blank = !line.replace(/--.*$/, '').trim();
       let cls = 'mark mark--todo';
       let glyph = blank ? '' : '·';
-      if (step && step.error) { cls = 'mark mark--err'; glyph = '✗'; }
-      else if (step) { cls = 'mark mark--ok'; glyph = '✓'; }
-      if (i === cl && !blank && !step) cls = 'mark mark--caret';
+      if (entry?.step.error) { cls = 'mark mark--err'; glyph = entry.cont ? '│' : '✗'; }
+      else if (entry) { cls = 'mark mark--ok'; glyph = entry.cont ? '│' : '✓'; }
+      if (i === cl && !blank && !entry) cls = 'mark mark--caret';
       return h('span', { class: cls, text: glyph || (i === cl ? '›' : '') });
     }));
 
@@ -255,7 +261,7 @@ export function renderLevel(host, id) {
     if (result.error) {
       feedback.className = 'feedback feedback--err';
       mount(feedback,
-        h('span.feedback__line', { text: `ligne ${errLine + 1} · ` }),
+        h('span.feedback__line', { text: `ligne ${result.error.line + 1} · ` }),
         result.error.message);
     } else if (result.solved) {
       feedback.className = 'feedback feedback--ok';

@@ -190,12 +190,16 @@ export function renderSandbox(host) {
     }
 
     const lines = area.value.split('\n');
-    const byLine = new Map(result.steps.slice(1).map((s) => [s.line, s]));
+    const byLine = new Map();
+    for (const s of result.steps.slice(1)) {
+      byLine.set(s.line, { step: s, cont: false });
+      for (let l = s.line + 1; l <= (s.endLine ?? s.line); l++) byLine.set(l, { step: s, cont: true });
+    }
     mount(gutter, ...lines.map((line, i) => {
-      const step = byLine.get(i);
+      const entry = byLine.get(i);
       const blank = !line.replace(/--.*$/, '').trim();
-      if (step?.error) return h('span.mark.mark--err', '✗');
-      if (step) return h('span.mark.mark--ok', '✓');
+      if (entry?.step.error) return h('span.mark.mark--err', { text: entry.cont ? '│' : '✗' });
+      if (entry) return h('span.mark.mark--ok', { text: entry.cont ? '│' : '✓' });
       return h('span.mark.mark--todo', { text: blank ? '' : '·' });
     }));
 

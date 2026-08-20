@@ -253,6 +253,13 @@
   .level__side { position: static; }
 }
 
+/* `min-width: 0` est indispensable : un élément de grille vaut par défaut
+   `min-width: auto`, donc une longue ligne de code (un bloc `calc`, un énoncé)
+   élargit la colonne et fait déborder la page entière au lieu de défiler. */
+.level__brief,
+.level__work,
+.level__side { min-width: 0; }
+
 .level__work { display: grid; gap: var(--gap-s); }
 .level__side { display: grid; gap: var(--gap-s); position: sticky; top: 5.2rem; }
 
