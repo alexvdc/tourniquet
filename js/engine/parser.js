@@ -8,7 +8,8 @@ export class ParseError extends Error {
 }
 
 const SYMBOLS = [
-  '<->', '->', '=>', '/\\', '\\/', ':=', '≠', '≤', '≥', '↔', '→', '∧', '∨', '¬',
+  // Les séquences longues d'abord : '++' avant '+', '::' avant ':'.
+  '<->', '->', '=>', '/\\', '\\/', ':=', '++', '::', '≠', '≤', '≥', '↔', '→', '∧', '∨', '¬',
   '∀', '∃', 'λ', '⟨', '⟩', '←', '↦', '(', ')', '{', '}', '[', ']', ',', ':',
   '=', '+', '*', '^', '-', '<', '>', '|', '·', '_', '~',
 ];
@@ -53,8 +54,11 @@ export function lex(src) {
 // contre le contexte local puis la bibliothèque de lemmes.
 const ALIAS = {
   succ: 'Nat.succ', zero: 'Nat.zero', Nat: 'ℕ', nat: 'ℕ', pred: 'Nat.pred',
+  length: 'List.length', reverse: 'List.reverse', append: 'List.append',
+  nil: 'List.nil', cons: 'List.cons',
 };
-const CONSTS = new Set(['ℕ', 'ℤ', 'ℚ', 'ℝ', 'True', 'False', 'Nat.zero', 'Nat.succ', 'Nat.pred']);
+const CONSTS = new Set(['ℕ', 'ℤ', 'ℚ', 'ℝ', 'True', 'False', 'Nat.zero', 'Nat.succ', 'Nat.pred',
+  'List', 'List.nil', 'List.cons', 'List.append', 'List.length', 'List.reverse']);
 
 function mkIdent(name) {
   const canon = ALIAS[name] ?? name;
@@ -72,6 +76,8 @@ const INFIX = {
   '=': ['Eq', 50, 'none'], '≠': ['Ne', 50, 'none'],
   '≤': ['Nat.le', 50, 'none'], '<': ['Nat.lt', 50, 'none'],
   '≥': ['Nat.ge', 50, 'none'], '>': ['Nat.gt', 50, 'none'],
+  '++': ['List.append', 65, 'left'],
+  '::': ['List.cons', 67, 'right'],
   '+': ['Nat.add', 65, 'left'], '-': ['Nat.sub', 65, 'left'],
   '*': ['Nat.mul', 70, 'left'],
   '^': ['Nat.pow', 75, 'right'],
@@ -198,7 +204,7 @@ class Parser {
     const k = this.peek();
     if (k.t === 'id') return !LAMBDA_WORDS.includes(k.v);
     if (k.t === 'num' || k.t === 'mvar') return true;
-    return k.t === 'sym' && ['(', '⟨', '_'].includes(k.v);
+    return k.t === 'sym' && ['(', '⟨', '_', '['].includes(k.v);
   }
 
   appTail(head) {
@@ -226,6 +232,16 @@ class Parser {
           return apps(Const('⟨⟩'), ...args);
         }
         case '¬': case '~': return App(Const('Not'), this.expr(40));
+        case '[': {
+          // [] et [a, b, c] : sucre pour des `cons` terminés par `nil`.
+          const items = [];
+          if (!this.atSym(']')) {
+            items.push(this.expr(0));
+            while (this.eat('sym', ',')) items.push(this.expr(0));
+          }
+          this.expect('sym', ']');
+          return items.reduceRight((acc, it) => apps(Const('List.cons'), it, acc), Const('List.nil'));
+        }
         case '_': return HOLE;
       }
     }

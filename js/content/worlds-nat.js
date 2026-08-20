@@ -599,6 +599,48 @@ Récurrence sur \`c\`. Dans le cas successeur, \`mul_add\` (la distributivité) 
       sol: ['induction c', 'rw [mul_zero, mul_zero, mul_zero]',
         'rw [mul_succ]', 'rw [mul_succ]', 'rw [mul_add]', 'rw [ih]'],
     },
+    {
+      id: '3.7',
+      name: 'preuve_lisible',
+      title: 'Une preuve qui se lit',
+      ctx: ['a b c : ℕ'],
+      goal: '(a + b) * c = c * a + c * b',
+      lemmas: [...ADD_ALL, ...MUL_ALL],
+      tactics: [...T_REC, 'calc'],
+      xp: 40,
+      brief: `Relis la preuve du niveau précédent. Six lignes de \`rw\`, et pour savoir ce qu’elles font il faut les rejouer une par une dans sa tête. C’est du code qui marche et qui ne s’explique pas.
+
+Voici le remède, et c’est une des plus belles constructions de Lean :
+
+\`\`\`
+calc (a + b) * c = a * c + b * c := by rw [add_mul]
+  _ = c * a + b * c := by rw [mul_comm a c]
+\`\`\`
+
+Chaque ligne annonce **où elle arrive**, puis justifie le pas après \`:=\`. Le \`_\` reprend le membre droit de la ligne précédente — c’est ce qui donne à la preuve sa forme d’escalier. La transitivité de l’égalité est implicite : c’est \`calc\` qui l’applique pour toi.
+
+Trois choses à savoir :
+
+- après \`:=\`, tu écris \`by\` suivi d’une tactique (plusieurs, séparées par \`;\`) — ou directement un terme de preuve, comme une hypothèse ;
+- la chaîne doit arriver **exactement** sur l’objectif, sinon \`calc\` le dit ;
+- chaque étape est vérifiée séparément, donc l’erreur est toujours localisée.
+
+C’est la différence entre une preuve que la machine accepte et une preuve qu’un humain relit. Mathlib est écrite comme ça.`,
+      examples: [
+        { code: 'calc a = b := h1', note: 'Première étape : elle nomme son point de départ.' },
+        { code: '_ = c := by rw [h2]', note: 'Le `_` reprend le `b` de la ligne d’avant.' },
+      ],
+      hints: [
+        'Développe d’abord avec `add_mul` : tu arrives à `a * c + b * c`.',
+        'Puis remets chaque produit dans l’ordre voulu, un à la fois, avec `mul_comm` et ses arguments.',
+        'Trois étapes suffisent. Et si tu préfères, la même preuve en trois `rw` marche aussi — compare les deux à la relecture.',
+      ],
+      sol: [
+        'calc (a + b) * c = a * c + b * c := by rw [add_mul]',
+        '  _ = c * a + b * c := by rw [mul_comm a c]',
+        '  _ = c * a + c * b := by rw [mul_comm b c]',
+      ],
+    },
   ],
 };
 

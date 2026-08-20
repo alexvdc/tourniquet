@@ -51,18 +51,15 @@ export function runProof(script, level) {
   const steps = [{ line: 0, text: '', state, error: null }];
   let error = null;
 
-  const lines = script.split('\n');
-  for (let i = 0; i < lines.length; i++) {
-    const text = stripComment(lines[i]).trim();
-    if (!text) continue;
+  for (const stmt of statements(script)) {
     if (error) break;
     try {
-      state = runTactic(state, text, env);
-      steps.push({ line: i, text, state, error: null });
+      state = runTactic(state, stmt.text, env);
+      steps.push({ line: stmt.line, endLine: stmt.endLine, text: stmt.text, state, error: null });
     } catch (err) {
       if (!(err instanceof TacticError)) throw err;
-      error = { line: i, message: err.message };
-      steps.push({ line: i, text, state, error: err.message });
+      error = { line: stmt.line, endLine: stmt.endLine, message: err.message };
+      steps.push({ line: stmt.line, endLine: stmt.endLine, text: stmt.text, state, error: err.message });
       break;
     }
   }
@@ -82,6 +79,37 @@ const stripComment = (l) => {
   const i = l.indexOf('--');
   return i < 0 ? l : l.slice(0, i);
 };
+
+/**
+ * Découpe le script en instructions. Une ligne = une tactique, sauf `calc` :
+ * ses étapes suivantes commencent par `_` et appartiennent à la même
+ * instruction. `endLine` sert à colorier toute la plage dans la marge.
+ * @returns {Array<{line: number, endLine: number, text: string}>}
+ */
+export function statements(script) {
+  const lines = script.split('\n');
+  const out = [];
+  for (let i = 0; i < lines.length; i++) {
+    const text = stripComment(lines[i]).trim();
+    if (!text) continue;
+    const stmt = { line: i, endLine: i, text };
+    if (/^calc\b/.test(text)) {
+      while (i + 1 < lines.length) {
+        const next = stripComment(lines[i + 1]).trim();
+        if (!next) { // une ligne vide n'interrompt pas encore la chaîne
+          if (!lines.slice(i + 2).some((l) => /^\s*_/.test(stripComment(l)))) break;
+          i++; continue;
+        }
+        if (!next.startsWith('_')) break;
+        stmt.text += '\n' + next;
+        i++;
+        stmt.endLine = i;
+      }
+    }
+    out.push(stmt);
+  }
+  return out;
+}
 
 const CMP = {
   'Nat.le': [(a, b) => a <= b, '≤'], 'Nat.lt': [(a, b) => a < b, '<'],

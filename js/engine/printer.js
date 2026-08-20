@@ -2,7 +2,7 @@
 // parenthèses. Les entiers restent des littéraux et `succ n` reste `succ n` :
 // c'est la distinction que le monde de Peano fait travailler.
 
-import { unfold } from './expr.js';
+import { unfold, match } from './expr.js';
 
 const INFIX = {
   Iff: ['↔', 20, 'right'],
@@ -18,9 +18,12 @@ const INFIX = {
   'Nat.sub': ['-', 65, 'left'],
   'Nat.mul': ['*', 70, 'left'],
   'Nat.pow': ['^', 75, 'right'],
+  'List.append': ['++', 65, 'left'],
+  'List.cons': ['::', 67, 'right'],
 };
 
-const SHORT = { 'Nat.succ': 'succ', 'Nat.zero': 'zero', 'Nat.pred': 'pred' };
+const SHORT = { 'Nat.succ': 'succ', 'Nat.zero': 'zero', 'Nat.pred': 'pred',
+  'List.nil': '[]', 'List.length': 'length', 'List.reverse': 'reverse' };
 
 const APP_PREC = 1024;
 const ATOM_PREC = 2048;
@@ -58,6 +61,10 @@ export function show(e, prec = 0) {
     }
     case 'app': {
       const { head, args } = unfold(e);
+      // Une chaîne de `cons` terminée par `nil` s'écrit comme une liste : Lean
+      // affiche `[x]`, pas `x :: []`.
+      const literal = asListLiteral(e);
+      if (literal) return `[${literal.map((x) => show(x, 0)).join(', ')}]`;
       if (head.k === 'const') {
         const inf = INFIX[head.n];
         if (inf && args.length === 2) {
@@ -84,6 +91,20 @@ export function show(e, prec = 0) {
 }
 
 const isHole = (t) => !t || (t.k === 'const' && t.n === '_');
+
+/** Éléments d'une liste littérale (`cons` … `nil`), ou null si ça n'en est pas une. */
+function asListLiteral(e) {
+  const out = [];
+  let cur = e;
+  for (let i = 0; i < 200; i++) {
+    if (cur.k === 'const' && cur.n === 'List.nil') return out.length ? out : null;
+    const cons = match(cur, 'List.cons', 2);
+    if (!cons) return null;
+    out.push(cons[0]);
+    cur = cons[1];
+  }
+  return null;
+}
 const sameType = (a, b) => show(a, 0) === show(b, 0);
 
 function occurs(e, name) {

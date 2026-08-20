@@ -6,7 +6,7 @@ const T_ORDER = ['rfl', 'exact', 'apply', 'intro', 'intros', 'cases', 'construct
 // tactiques du moteur, pour que le Grimoire dise vrai.
 const T_ALL = [...T_ORDER, 'induction', 'simp', 'have', 'ring', 'revert', 'unfold',
   'exfalso', 'contradiction', 'trivial', 'repeat', 'sorry', 'decide', 'assumption',
-  'all_goals', 'intros'];
+  'all_goals', 'intros', 'calc'];
 
 const ADD_ALL = ['add_zero', 'add_succ', 'zero_add', 'succ_add', 'add_assoc',
   'add_comm', 'add_right_comm'];
@@ -148,7 +148,7 @@ Ce n’est pas une limitation de ce jeu, c’est un vrai réflexe de Lean. Quand
 };
 
 export const WORLD_VRAI_LEAN = {
-  num: 9,
+  num: 10,
   id: 'vrai-lean',
   title: 'Le Vrai Lean',
   subtitle: 'Sortir du jeu',
@@ -156,7 +156,7 @@ export const WORLD_VRAI_LEAN = {
   intro: `Dernier monde. Tu vas rencontrer les tactiques d’automatisation, apprendre à installer Lean pour de vrai, et affronter un boss final qu’aucune machine ne fera à ta place. Puis tu le refais en une ligne, pour comprendre pourquoi Mathlib existe.`,
   levels: [
     {
-      id: '9.1',
+      id: '10.1',
       name: 'simp_exemple',
       title: 'simp, le balai',
       ctx: ['a b : ℕ'],
@@ -182,7 +182,7 @@ Ce niveau se ferait à la main en trois réécritures. Essaie les deux, et regar
       sol: ['simp'],
     },
     {
-      id: '9.2',
+      id: '10.2',
       name: 'norm_num_exemple',
       title: 'Le calcul, enfin',
       ctx: [],
@@ -206,7 +206,7 @@ Pendant que tu y es, essaie de le prouver **sans** \`norm_num\`, avec les axiome
       sol: ['norm_num'],
     },
     {
-      id: '9.3',
+      id: '10.3',
       name: 'have_exemple',
       title: 'Nommer une étape',
       ctx: ['p q r : Prop', 'hpq : p → q', 'hqr : q → r', 'hp : p'],
@@ -234,7 +234,7 @@ Sa variante \`suffices\` fait l’inverse : elle réduit l’objectif à un éno
       sol: ['have hq : q := hpq hp', 'exact hqr hq'],
     },
     {
-      id: '9.4',
+      id: '10.4',
       name: 'installer_lean',
       title: 'Installer le vrai Lean',
       ctx: [],
@@ -277,14 +277,14 @@ Allez, un dernier exercice facile avant le boss final.`,
       lean: `-- Dans le vrai Lean 4 avec Mathlib :\nexample : ∀ (n : ℕ), n * 1 = n := by\n  intro n\n  rw [mul_one]`,
     },
     {
-      id: '9.5',
+      id: '10.5',
       name: 'identite_remarquable',
       title: 'Le carré de la somme',
       boss: true,
       ctx: ['a b : ℕ'],
       goal: '(a + b) * (a + b) = a * a + 2 * (a * b) + b * b',
       lemmas: [...ADD_ALL, ...MUL_ALL],
-      tactics: ['rfl', 'rw', 'exact', 'intro', 'have', 'induction'],
+      tactics: ['rfl', 'rw', 'exact', 'intro', 'have', 'induction', 'calc'],
       xp: 120,
       brief: `**Boss final.** \`(a+b)² = a² + 2ab + b²\`, à la main, avec les théorèmes que tu as démontrés toi-même. Pas de \`ring\` : la tactique est désactivée pour ce niveau.
 
@@ -297,7 +297,9 @@ Tu as tout ce qu’il faut, et rien de plus :
 
 La méthode est celle de tout calcul algébrique : **développer d’abord**, ranger ensuite. Développe entièrement le membre gauche, casse le \`2 *\` à droite, mets les produits dans le même ordre, et fais tomber les parenthèses des deux côtés jusqu’à ce que les deux sommes soient écrites identiquement.
 
-Sept lignes. Prends le temps de lire la fenêtre après chacune — c’est là que tout se joue.`,
+Sept lignes. Prends le temps de lire la fenêtre après chacune — c’est là que tout se joue.
+
+Et si tu veux une preuve dont tu seras fier dans six mois : \`calc\` est autorisée ici. La même démonstration, écrite en escalier, se relit sans être rejouée.`,
       examples: [
         { code: 'rw [add_mul]', note: '`(a + b) * c` ⟶ `a * c + b * c`' },
         { code: 'rw [mul_comm b a]', note: 'Vise `b * a` précisément, et l’écrit `a * b`.' },
@@ -321,7 +323,7 @@ Sept lignes. Prends le temps de lire la fenêtre après chacune — c’est là 
       lean: `-- Dans le vrai Lean 4 avec Mathlib, à la main :\nexample (a b : ℕ) : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b := by\n  rw [add_mul, mul_add, mul_add, two_mul, mul_comm b a, ← add_assoc, ← add_assoc]\n\n-- ou, comme tout le monde le ferait :\nexample (a b : ℕ) : (a + b) * (a + b) = a * a + 2 * (a * b) + b * b := by\n  ring`,
     },
     {
-      id: '9.6',
+      id: '10.6',
       name: 'une_ligne',
       title: 'Une ligne',
       ctx: ['a b : ℕ'],

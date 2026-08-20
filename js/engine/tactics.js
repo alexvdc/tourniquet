@@ -212,24 +212,42 @@ def('rw', 'rules', (state, rest, env) => {
 // ── induction ──────────────────────────────────────────────────────────────
 def('induction', 'name', (state, rest, env) => {
   const goal = state.goals[0];
-  const m = rest.trim().match(/^(\S+)(?:\s+with\s+(\S+)(?:\s+(\S+))?)?$/);
+  const m = rest.trim().match(/^(\S+)(?:\s+with\s+(\S+)(?:\s+(\S+))?(?:\s+(\S+))?)?$/);
   if (!m) fail('`induction` attend une variable, par exemple `induction n` ou `induction n with k ih`.');
-  const [, varName, kName, ihName] = m;
+  const [, varName, n1, n2, n3] = m;
   const hyp = lookupHyp(goal.ctx, varName);
   if (!hyp) fail(`\`${varName}\` n’est pas dans le contexte : sur quoi veux-tu faire la récurrence ?`);
-  if (!alphaEq(hyp.type, NAT) && !(hyp.type.k === 'const' && hyp.type.n === '_')) {
-    fail(`la récurrence de ce jeu ne marche que sur ℕ, et \`${varName} : ${show(hyp.type)}\`.`);
-  }
+
   const dependents = goal.ctx.filter((h) => h.name !== varName && freeVars(h.type).has(varName));
   if (dependents.length) {
     fail(`l’hypothèse \`${dependents[0].name}\` parle de \`${varName}\` : la récurrence casserait le contexte. Reformule l’énoncé pour la quantifier.`);
   }
   const others = goal.ctx.filter((h) => h.name !== varName);
+  const listElem = match(hyp.type, 'List', 1);
 
+  // ── récurrence sur une liste : cas [] et cas x :: t ────────────────────
+  if (listElem) {
+    const nilGoal = mkGoal(others, subst(goal.target, varName, Const('List.nil')));
+    const head = freshHypName(n1 ?? 'x', others);
+    const ctxTail = [...others, { name: head, type: listElem[0] }];
+    const tail = freshHypName(n2 ?? varName, ctxTail);
+    const ctxCons = [...ctxTail, { name: tail, type: hyp.type }];
+    const ih = freshHypName(n3 ?? 'ih', ctxCons);
+    const consGoal = mkGoal(
+      [...ctxCons, { name: ih, type: subst(goal.target, varName, Var(tail)) }],
+      subst(goal.target, varName, apps(Const('List.cons'), Var(head), Var(tail))));
+    return replaceFirst(state, [nilGoal, consGoal]);
+  }
+
+  if (!alphaEq(hyp.type, NAT) && !(hyp.type.k === 'const' && hyp.type.n === '_')) {
+    fail(`la récurrence de ce jeu marche sur ℕ et sur les listes, et \`${varName} : ${show(hyp.type)}\`.`);
+  }
+
+  // ── récurrence sur ℕ : cas 0 et cas succ k ─────────────────────────────
   const zeroGoal = mkGoal(others, subst(goal.target, varName, Lit(0)));
-  const k = freshHypName(kName ?? varName, others);
+  const k = freshHypName(n1 ?? varName, others);
   const ctxSucc = [...others, { name: k, type: NAT }];
-  const ih = freshHypName(ihName ?? 'ih', ctxSucc);
+  const ih = freshHypName(n2 ?? 'ih', ctxSucc);
   const succGoal = mkGoal(
     [...ctxSucc, { name: ih, type: subst(goal.target, varName, Var(k)) }],
     subst(goal.target, varName, mkSucc(Var(k))));
@@ -541,6 +559,85 @@ TACTICS.decide = { ...TACTICS.norm_num, name: 'decide' };
 def('sorry', 'none', (state, rest, env) => ({
   ...replaceFirst(state, []), sorried: true,
 }));
+
+// ── calc ───────────────────────────────────────────────────────────────────
+
+/**
+ * Chaîne d'égalités, comme en Lean 4 :
+ *
+ *   calc (a + b) * c = a * c + b * c := by rw [add_mul]
+ *     _ = c * a + b * c := by rw [mul_comm a c]
+ *
+ * Chaque étape est une égalité justifiée après `:=`, par `by <tactique>` ou par
+ * un terme. Le `_` reprend le membre droit de l'étape précédente. Au bout, la
+ * chaîne doit prouver exactement l'objectif — la transitivité est implicite,
+ * c'est tout l'intérêt : une preuve qui se lit de haut en bas.
+ */
+def('calc', 'block', (state, rest, env) => {
+  const goal = state.goals[0];
+  const steps = rest.split('\n').map((l) => l.trim()).filter(Boolean);
+  if (!steps.length) fail('`calc` attend au moins une étape : `calc a = b := by rfl`.');
+
+  let start = null, cursor = null;
+  steps.forEach((line, i) => {
+    const cut = line.indexOf(':=');
+    if (cut < 0) {
+      fail(`étape ${i + 1} : il manque la justification. Écris \`… = … := by <tactique>\`.`);
+    }
+    const claim = parseTerm(line.slice(0, cut), `étape ${i + 1} de calc`);
+    const justif = line.slice(cut + 2).trim();
+    const eq = match(claim, 'Eq', 2);
+    if (!eq) {
+      fail(`étape ${i + 1} : \`calc\` enchaîne des égalités, et \`${show(claim)}\` n’en est pas une.`);
+    }
+    let [left, right] = eq;
+    const isHole = (e) => e.k === 'const' && e.n === '_';
+    if (i === 0) {
+      if (isHole(left)) fail('la première étape doit nommer son membre gauche, pas `_`.');
+      start = left;
+    } else if (isHole(left)) {
+      left = cursor;
+    } else if (!defEq(left, cursor, env.opts)) {
+      fail(`étape ${i + 1} : le membre gauche \`${show(left)}\` ne reprend pas \`${show(cursor)}\`,`
+        + ' le membre droit de l’étape précédente. Utilise `_` pour le reprendre.');
+    }
+
+    // Chaque étape est une petite preuve autonome, dans le contexte du niveau.
+    const sub = { goals: [mkGoal(goal.ctx, apps(Const('Eq'), left, right))], sorried: false };
+    let out;
+    if (/^by\b/.test(justif)) {
+      out = sub;
+      for (const tac of splitTop(justif.replace(/^by\s*/, ''), ';')) {
+        if (!out.goals.length) fail(`étape ${i + 1} : \`${tac}\` arrive après la fin de l’étape.`);
+        try { out = runTactic(out, tac, env); }
+        catch (err) {
+          if (err instanceof TacticError) fail(`étape ${i + 1} — ${err.message}`);
+          throw err;
+        }
+      }
+    } else {
+      if (!justif) fail(`étape ${i + 1} : justification vide après \`:=\`.`);
+      const term = parseTerm(justif, `justification de l’étape ${i + 1}`);
+      try { check(term, sub.goals[0].target, envFor(env, sub.goals[0])); out = { goals: [], sorried: false }; }
+      catch (err) {
+        if (err instanceof ElabError) fail(`étape ${i + 1} — ${err.message}`);
+        throw err;
+      }
+    }
+    if (out.goals.length) {
+      fail(`étape ${i + 1} : \`${show(left)} = ${show(right)}\` n’est pas démontrée.`
+        + `\nIl reste : ${show(out.goals[0].target)}`);
+    }
+    if (out.sorried) fail(`étape ${i + 1} fermée par \`sorry\` : la chaîne ne compte pas.`);
+    cursor = right;
+  });
+
+  const proved = apps(Const('Eq'), start, cursor);
+  if (!defEq(proved, goal.target, env.opts)) {
+    fail(`la chaîne démontre \`${show(proved)}\`, or l’objectif est \`${show(goal.target)}\`.`);
+  }
+  return replaceFirst(state, []);
+});
 
 // ── combinateurs ───────────────────────────────────────────────────────────
 def('repeat', 'tactic', (state, rest, env) => {

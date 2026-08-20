@@ -17,7 +17,13 @@ import { TACTIC_DOCS } from '../js/content/tactics-doc.js';
 import { LEMMAS, ALWAYS } from '../js/engine/lib.js';
 import { showState } from '../js/engine/printer.js';
 
-const tacticOf = (line) => line.trim().match(/^([a-z_]+)/)?.[1] ?? null;
+// Les lignes de continuation d'un `calc` commencent par `_` : ce n'est pas une
+// tactique, c'est la suite de la précédente.
+const tacticOf = (line) => {
+  const t = line.trim();
+  if (t.startsWith('_')) return null;
+  return t.match(/^([a-z_]+)/)?.[1] ?? null;
+};
 
 const documentedTactics = new Set(
   TACTIC_DOCS.flatMap((d) => d.name.split(/\s*\/\s*/).map((n) => n.trim())));
@@ -127,9 +133,9 @@ const ALTERNATIVES = [
   ['6.6', 'intro hnp hp\ncontradiction'],
   ['7.1', 'intros\nrw [add_zero]'],
   ['7.3', 'apply h'],
-  ['9.1', 'rw [add_zero, zero_add]'],
-  ['9.2', 'ring'],
-  ['9.2', 'decide'],
+  ['10.1', 'rw [add_zero, zero_add]'],
+  ['10.2', 'ring'],
+  ['10.2', 'decide'],
 ];
 
 test('les preuves alternatives d’un débutant sont acceptées', () => {
@@ -200,7 +206,7 @@ test('aucun message d’erreur ne laisse fuir l’intérieur du moteur', () => {
 });
 
 test('le moteur ne boucle pas sur une entrée absurde', () => {
-  const level = LEVEL_BY_ID.get('9.6');
+  const level = LEVEL_BY_ID.get('10.6');
   const bombs = ['repeat rw [add_comm]', 'simp', 'repeat simp', 'all_goals ring',
     'rw [add_comm, add_comm, add_comm]', 'repeat rw [two_mul]'];
   for (const script of bombs) {

@@ -67,7 +67,7 @@ test('une solution tronquée ne valide pas le niveau', () => {
 });
 
 test('les indices ne donnent pas la solution complète du boss final', () => {
-  const boss = LEVEL_BY_ID.get('9.5');
+  const boss = LEVEL_BY_ID.get('10.5');
   assert.ok(boss.hints.length >= 3);
 });
 

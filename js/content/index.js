@@ -2,9 +2,12 @@
 
 import { NAT_WORLDS } from './worlds-nat.js';
 import { LOGIC_WORLDS } from './worlds-logic.js';
-import { FINAL_WORLDS } from './worlds-final.js';
+import { LIST_WORLDS } from './worlds-lists.js';
+import { WORLD_ORDRE, WORLD_VRAI_LEAN } from './worlds-final.js';
 
-export const WORLDS = [...NAT_WORLDS, ...LOGIC_WORLDS, ...FINAL_WORLDS];
+// L'ordre des mondes est celui de ce tableau : les listes s'intercalent avant
+// « Le Vrai Lean », qui reste l'épilogue du jeu.
+export const WORLDS = [...NAT_WORLDS, ...LOGIC_WORLDS, WORLD_ORDRE, ...LIST_WORLDS, WORLD_VRAI_LEAN];
 
 export const LEVELS = WORLDS.flatMap((w) =>
   w.levels.map((l, i) => ({ ...l, world: w.num, worldId: w.id, worldTitle: w.title, index: i })));
@@ -74,8 +77,10 @@ export const ACHIEVEMENTS = [
     test: (p) => p.done.has('6.7') },
   { id: 'temoin', name: 'Porteur de témoin', glyph: '∃', desc: 'Terminer le monde 7.',
     test: (p) => worldDone(7, p) },
-  { id: 'sans-ring', name: 'À la main', glyph: '∎', desc: 'Battre le boss final sans `ring`.',
+  { id: 'listes', name: 'Tête et queue', glyph: '::', desc: 'Retourner une liste deux fois.',
     test: (p) => p.done.has('9.5') },
+  { id: 'sans-ring', name: 'À la main', glyph: '∎', desc: 'Battre le boss final sans `ring`.',
+    test: (p) => p.done.has('10.5') },
   { id: 'integrale', name: 'Intégrale', glyph: '★', desc: `Terminer les ${LEVELS.length} niveaux.`,
     test: (p) => p.done.size >= LEVELS.length },
 ];

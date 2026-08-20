@@ -283,3 +283,30 @@ export const SYNTAX_NOTES = [
     body: `Pas de noyau, donc pas de terme de preuve vérifié. Unification du premier ordre seulement : les motifs d’ordre supérieur (\`?f x\`) ne s’unifient pas. Pas de classes de types, pas d’univers, pas de structures, un seul type de données (ℕ) et les propositions. \`ring\` et \`norm_num\` décident sans produire de certificat. Tout le reste — la façon de lire un objectif, le rôle des tactiques, la discipline des noms — se transfère tel quel au vrai Lean.`,
   },
 ];
+
+TACTIC_DOCS.push({
+  name: 'calc',
+  group: 'Structure',
+  world: 3,
+  syntax: ['calc a = b := by rw [h]', '_ = c := by rw [h2]', '_ = d := h3'],
+  doc: `La tactique qui rend une preuve lisible. Une chaîne d'égalités, chacune sur sa
+ligne, chacune justifiée après \`:=\` — par \`by <tactique>\` ou par un terme :
+
+\`\`\`
+calc (a + b) * c = a * c + b * c := by rw [add_mul]
+  _ = c * a + b * c := by rw [mul_comm a c]
+  _ = c * a + c * b := by rw [mul_comm b c]
+\`\`\`
+
+Le \`_\` reprend le membre droit de la ligne précédente : c'est ce qui donne à la
+preuve sa forme d'escalier. La transitivité de l'égalité est appliquée pour toi, et
+chaque étape est vérifiée séparément — donc une erreur est toujours localisée.
+
+Compare avec la même preuve en trois \`rw\` : le résultat est identique pour la
+machine, mais l'un s'explique et l'autre se rejoue. Mathlib est écrite en \`calc\`
+partout où le calcul compte plus que l'astuce.
+
+Ce moteur n'enchaîne que des égalités. Le vrai Lean accepte n'importe quelle
+relation transitive — \`≤\`, \`<\`, \`⊆\`, et même un mélange des trois, dont il
+déduit la relation finale.`,
+});
