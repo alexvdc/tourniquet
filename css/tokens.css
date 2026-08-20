@@ -35,7 +35,7 @@
   --iris-wash: rgba(146, 152, 228, 0.12);
 
   /* Typographie */
-  --font-display: "Bodoni Moda", "Didot", Georgia, serif;
+  --font-display: "Bodoni Moda", Georgia, "Times New Roman", serif;
   --font-prose: "Spectral", Georgia, "Times New Roman", serif;
   --font-ui: "Archivo", "Helvetica Neue", Arial, sans-serif;
   --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;

@@ -19,7 +19,19 @@
   line-height: 0.98;
   letter-spacing: -0.02em;
 }
-.hero__title em { font-style: italic; color: var(--gold); }
+/* L'expression du titre était en Bodoni italique : une didone à très fort
+   contraste, dont les déliés de `+` et `=` disparaissent sur les petits écrans
+   (et pire encore avec le repli Didot d'iOS). Une expression mathématique
+   appartient de toute façon à la fonte de la fenêtre d'objectif. */
+.hero__title em {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 0.82em;
+  letter-spacing: -0.02em;
+  color: var(--gold);
+  white-space: nowrap;
+}
 
 .hero__lede {
   font-family: var(--font-prose);
@@ -95,6 +107,12 @@
 
 @media (max-width: 900px) {
   .hero { grid-template-columns: 1fr; }
+}
+
+/* Sous 700 px, les déliés de la didone deviennent trop fins : on épaissit. */
+@media (max-width: 700px) {
+  .hero__title, .title-display, .title-section, .world__title, .level__title,
+  .standingcard__rank, .stat__num { font-weight: 600; }
 }
 
 /* ═══════════════════════════════════════════════════════ atlas */
