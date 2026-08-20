@@ -118,6 +118,9 @@ export function md(src) {
 /** Balise le code d'une seule ligne, en mono, sans HTML. */
 export const codeSpan = (text) => h('code', { text });
 
+/** Markdown sans le paragraphe englobant, pour l'insérer dans une phrase. */
+export const mdInline = (src) => md(src).replace(/^<p>|<\/p>$/g, '');
+
 // Une didone comme Bodoni dessine `+` et `=` en traits de cheveux : dans un
 // titre, ils disparaissent. Les expressions passent donc dans la fonte de la
 // fenêtre d'objectif — leur place naturelle de toute façon.

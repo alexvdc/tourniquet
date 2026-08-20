@@ -43,6 +43,17 @@ export function progress() {
 
 export const subscribe = (fn) => { listeners.add(fn); return () => listeners.delete(fn); };
 
+// Deux onglets ouverts sur le site écrivaient chacun depuis leur cache mémoire :
+// le dernier à sauvegarder effaçait les preuves de l'autre. On écoute donc les
+// modifications venues d'ailleurs pour invalider le cache.
+if (typeof window !== 'undefined' && window.addEventListener) {
+  window.addEventListener('storage', (event) => {
+    if (event.key !== null && event.key !== KEY) return;
+    cache = null;
+    for (const fn of listeners) fn(progress());
+  });
+}
+
 export const isDone = (id) => read().done.includes(id);
 
 /** @returns {boolean} vrai si c'est la première résolution (XP gagnée) */

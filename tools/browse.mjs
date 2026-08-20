@@ -372,12 +372,13 @@ if (command === 'shoot') {
   // renavigateur vers la même URL ne recharge rien (navigation same-document).
   const res = await withPage(`${base}/`, async ({ evaluate, journal, capture, cdp }) => {
     await evaluate(seed);
-    await evaluate(`location.hash = '#/niveau/${target}'`);
-    // Rechargement obligatoire : `js/state.js` garde la progression dans un
-    // cache mémoire, donc écrire dans localStorage sans recharger ne change rien
-    // — et le brouillon semé serait aussitôt réécrit par l'ancien.
+    // Recharger *avant* d'ouvrir le niveau, jamais après : `js/state.js` garde
+    // la progression dans un cache mémoire, et une vue montée avec l'ancien
+    // cache réécrit aussitôt le brouillon semé.
     await cdp.send('Page.reload', { ignoreCache: true });
-    await sleep(2000);
+    await sleep(1500);
+    await evaluate(`location.hash = '#/niveau/${target}'`);
+    await sleep(1200);
     const state = await evaluate(STATE_PROBE);
     await capture(outPath, { full: !!flags.full });
     return { state, journal };

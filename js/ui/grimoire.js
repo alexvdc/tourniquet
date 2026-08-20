@@ -1,6 +1,6 @@
 // Le Grimoire (documentation) et le Bac à sable (preuves libres).
 
-import { h, mount, md, ABBREVS, toast, expandAbbrev, playgroundUrl, copyText } from './dom.js';
+import { h, mount, md, mdInline, ABBREVS, toast, expandAbbrev, playgroundUrl, copyText } from './dom.js';
 import { renderGoals } from './goal.js';
 import { LEMMAS, lemmaType, ALWAYS } from '../engine/lib.js';
 import { show } from '../engine/printer.js';
@@ -97,7 +97,7 @@ export function renderGrimoire(host) {
   const abbrevs = h('div.panel',
     h('div.panel__head', h('span.panel__title', 'Écrire les symboles')),
     h('div.panel__body',
-      h('p.entry__doc', 'Comme dans VS Code : tape la séquence, puis un espace. L’éditeur du site accepte aussi les équivalents ASCII (`->`, `/\\`, `\\/`, `<->`, `~`, `<-`).'),
+      h('p.entry__doc', { html: mdInline('Comme dans VS Code : tape la séquence, puis un espace. L’éditeur accepte aussi les équivalents ASCII : `->`, `/\\`, `\\/`, `<->`, `~`, `<-`.') }),
       h('div.abbrevtable', ...dedupeAbbrevs().map(([seq, out]) => h('div.abbrev',
         h('span.abbrev__seq', { text: seq }),
         h('span.abbrev__arrow', '→'),
@@ -265,15 +265,15 @@ export function renderSandbox(host) {
       h('label.field',
         h('span.field__label', 'Hypothèses'),
         ctxField,
-        h('span.field__help', 'Format Lean : `a b : ℕ`, `p q : Prop`, `h : a = b`. Sépare par des espaces.')),
+        h('span.field__help', { html: mdInline('Format Lean : `a b : ℕ`, `p q : Prop`, `h : a = b`. Sépare par des espaces.') })),
       h('label.field',
         h('span.field__label', 'Objectif'),
         goalField,
-        h('span.field__help', 'Par exemple `a + b = b + a`, `p ∧ q → q ∧ p`, `∃ (n : ℕ), n * n = 49`.')),
+        h('span.field__help', { html: mdInline('Par exemple `a + b = b + a`, `p ∧ q → q ∧ p`, `∃ (n : ℕ), n * n = 49`.') })),
       h('label.field',
         h('span.field__label', 'Calcul numérique'),
         arithField,
-        h('span.field__help', 'Désactivé, `rfl` exige des termes identiques — l’expérience du monde 1.'))),
+        h('span.field__help', { html: mdInline('Désactivé, `rfl` exige des termes identiques — l’expérience du monde 1.') }))),
 
     h('div.sandbox__cols',
       h('div.level__work',
