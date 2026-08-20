@@ -1,7 +1,7 @@
 // La vue d'un niveau : consigne à gauche, éditeur au centre, objectif à droite.
 // L'état affiché suit le curseur dans l'éditeur, comme l'Infoview de Lean.
 
-import { h, mount, md, toast, expandAbbrev, playgroundUrl, copyText } from './dom.js';
+import { h, mount, md, toast, expandAbbrev, playgroundUrl, copyText, mathify } from './dom.js';
 import { renderGoals, renderStatement } from './goal.js';
 import { runProof, leanCode, levelState } from '../engine/proof.js';
 import { BY_NAME, buildLib } from '../engine/lib.js';
@@ -78,7 +78,7 @@ export function renderLevel(host, id) {
   const brief = h('aside.level__brief',
     h('article.manuscript',
       h('span.eyebrow', { text: `Monde ${level.world} · ${world?.title ?? ''}` }),
-      h('h3', { text: level.title }),
+      h('h3', ...mathify(level.title)),
       h('div', { html: md(level.brief) }),
       level.examples?.length ? h('hr.manuscript__rule') : null,
       level.examples?.length
@@ -318,7 +318,7 @@ export function renderLevel(host, id) {
     h('div.level__bar',
       h('a.level__crumb', { href: '#/' }, 'Atlas'),
       h('span.level__crumb', { text: `· ${level.id} ·` }),
-      h('h1.level__title', { text: level.title }),
+      h('h1.level__title', ...mathify(level.title)),
       level.boss ? h('span.badge.badge--boss', 'boss') : null,
       store.isDone(id) ? h('span.badge.badge--done', 'terminé') : null,
       h('div.level__nav',

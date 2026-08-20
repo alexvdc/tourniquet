@@ -6,7 +6,8 @@
   "description": "Apprendre Lean 4 en demontrant : 55 niveaux, du premier tourniquet au dernier QED.",
   "scripts": {
     "dev": "node dev-server.mjs",
-    "test": "node --test tests/*.test.mjs"
+    "test": "node --test tests/*.test.mjs",
+    "audit": "node tools/browse.mjs audit http://localhost:8123/ --width 390 --dpr 2"
   },
   "license": "MIT"
 }

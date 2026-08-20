@@ -150,3 +150,15 @@ test('le routeur monte la vue correspondant au fragment', async () => {
   assert.equal(document.getElementById('rank-name').textContent, 'Curieux');
   assert.match(document.getElementById('xp-count').textContent, /0 \/ \d+ XP/);
 });
+
+test('les expressions des titres passent en monospace sans perdre les espaces', async () => {
+  const { mathify } = await import('../js/ui/dom.js');
+  const flat = (t) => mathify(t).map((n) => (typeof n === 'string' ? n : n.textContent)).join('');
+  for (const t of ['Pourquoi 2 + 2 = 4', 'Deux fois rien', 'Le carré de la somme',
+                   '2 + 2 = 4', 'Ajouter deux', 'Zéro à gauche']) {
+    assert.equal(flat(t), t, `« ${t} » abîmé`);
+  }
+  // Une expression doit être isolée dans un fragment, un titre sans maths non.
+  assert.equal(mathify('Pourquoi 2 + 2 = 4').length, 3);
+  assert.equal(mathify('Deux fois rien').length, 1);
+});

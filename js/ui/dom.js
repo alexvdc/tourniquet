@@ -118,6 +118,36 @@ export function md(src) {
 /** Balise le code d'une seule ligne, en mono, sans HTML. */
 export const codeSpan = (text) => h('code', { text });
 
+// Une didone comme Bodoni dessine `+` et `=` en traits de cheveux : dans un
+// titre, ils disparaissent. Les expressions passent donc dans la fonte de la
+// fenêtre d'objectif — leur place naturelle de toute façon.
+const MATH_RUN = /([0-9\s]*[+=×*^≤≥<>≠→↔∧∨¬∎⊢][0-9+=×*^≤≥<>≠→↔∧∨¬∎⊢\s]*)/g;
+
+/**
+ * Découpe un titre en fragments, les expressions mathématiques enveloppées.
+ * @returns {Array<string|HTMLElement>} à étaler dans `h(...)`
+ */
+export function mathify(text) {
+  const out = [];
+  let last = 0;
+  const src = String(text ?? '');
+  for (const m of src.matchAll(MATH_RUN)) {
+    const run = m[1];
+    if (!/[0-9]/.test(run)) continue; // un tiret isolé n'est pas une formule
+    // Les espaces qui encadrent l'expression restent dehors : sans ça, « Pourquoi
+    // 2 + 2 = 4 » perdait son espace et se lisait « Pourquoi2 + 2 = 4 ».
+    const [, before, core, after] = run.match(/^(\s*)([\s\S]*?)(\s*)$/);
+    if (m.index > last) out.push(src.slice(last, m.index));
+    if (before) out.push(before);
+    out.push(h('span.expr', { text: core }));
+    if (after) out.push(after);
+    last = m.index + run.length;
+  }
+  const tail = String(text ?? '').slice(last);
+  if (tail) out.push(tail);
+  return out.length ? out : [String(text ?? '')];
+}
+
 /* ─────────────────────────────────── abréviations d'entrée à la Lean */
 
 export const ABBREVS = [

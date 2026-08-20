@@ -12,6 +12,32 @@
   margin-bottom: var(--gap-xs);
 }
 
+/* Une expression, où qu'elle apparaisse, appartient à la fonte de la fenêtre
+   d'objectif : c'est plus lisible qu'une didone, et c'est cohérent avec le sujet. */
+.expr {
+  font-family: var(--font-mono);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 0.86em;
+  letter-spacing: -0.01em;
+}
+
+/* Bodoni Moda est une didone à axe optique : par défaut le navigateur choisit
+   la coupe « display » (opsz élevé), dont les déliés sont des cheveux — un `+`
+   ou un `=` y devient invisible. On force une coupe de labeur, dessinée avec
+   des traits fins plus épais, sans rien perdre du caractère de la fonte. */
+.title-display,
+.title-section,
+.level__title,
+.world__title,
+.hero__title,
+.standingcard__rank,
+.solved__title,
+.manuscript h3 {
+  font-optical-sizing: none;
+  font-variation-settings: "opsz" 12;
+}
+
 .title-display {
   font-family: var(--font-display);
   font-size: var(--step-3);
@@ -304,6 +330,9 @@
   line-height: 1.68;
   max-width: 46rem;
 }
+/* Toute étiquette de craie posée sur le vélin doit repasser à l'encre. */
+.manuscript .eyebrow { color: var(--sepia-dim); }
+
 .manuscript h3 {
   font-family: var(--font-display);
   font-size: var(--step-1);
@@ -350,18 +379,33 @@
 
 /* ─────────────────────────────────────────────── divers */
 
+/* Une colonne : les tactiques du jeu vont de `rfl` à
+   `rw [le_iff_exists_add] at hab`, et deux colonnes finissaient toujours par
+   écraser la glose sur trois lignes de deux mots. */
 .tacticnote {
   display: grid;
-  grid-template-columns: minmax(7rem, auto) 1fr;
-  gap: 0.3rem var(--gap-s);
-  align-items: baseline;
+  gap: 0.15rem;
   font-size: var(--step--1);
 }
+/* Ce bloc vit sur le vélin, pas sur l'ardoise : il lui faut de l'encre, pas de
+   la craie. L'or et le gris-bleu y étaient illisibles. */
 .tacticnote code {
   font-size: 0.78rem;
-  color: var(--gold);
+  color: #6d3f0c;
+  background: rgba(36, 31, 22, 0.07);
+  padding: 0.1em 0.35em;
+  border-radius: 2px;
+  justify-self: start;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
 }
-.tacticnote span { color: var(--chalk-dim); font-family: var(--font-prose); }
+.tacticnote span {
+  color: var(--sepia-dim);
+  font-family: var(--font-prose);
+  padding-left: 0.9rem;
+  margin-bottom: 0.5rem;
+}
 
 .toaster {
   position: fixed;

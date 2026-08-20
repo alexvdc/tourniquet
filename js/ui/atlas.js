@@ -1,6 +1,6 @@
 // L'accueil : un hameçon, une preuve qui se déroule toute seule, puis l'Atlas.
 
-import { h, mount, md } from './dom.js';
+import { h, mount, md, mathify } from './dom.js';
 import { renderGoals } from './goal.js';
 import { runProof } from '../engine/proof.js';
 import { show } from '../engine/printer.js';
@@ -117,7 +117,7 @@ function levelCard(level, done) {
       h('span.levelcard__id', { text: level.id }),
       level.boss ? h('span.badge.badge--boss', 'boss') : null,
       h('span.levelcard__state', { text: isDone ? '✓' : isOpen ? '' : '·' })),
-    h('span.levelcard__title', { text: level.title }),
+    h('span.levelcard__title', ...mathify(level.title)),
     h('span.levelcard__goal', { text: isOpen ? level.goal : 'verrouillé' }));
 }
 
@@ -133,7 +133,8 @@ export function renderAtlas(host) {
   const hero = h('section.hero',
     h('div',
       h('span.eyebrow', 'Apprendre Lean 4 en démontrant'),
-      h('h1.hero__title', 'Personne ne t’a jamais demandé de prouver que ', h('em', '2 + 2 = 4')),
+      h('h1.hero__title', 'Personne ne t’a jamais demandé de prouver que ',
+        h('span.expr.hero__expr', '2 + 2 = 4')),
       h('p.hero__lede',
         'Un assistant de preuve, si. ',
         h('strong', 'Tourniquet'),

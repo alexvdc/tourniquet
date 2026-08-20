@@ -34,6 +34,7 @@ ligne avec `ring`.
 ```bash
 npm run dev     # http://localhost:8123
 npm test        # moteur, contenu (les 55 preuves rejouées) et rendu des vues
+npm run audit   # rendu réel dans Chrome : débordements, contrastes, console
 ```
 
 Aucune dépendance à installer : le serveur de dev est un fichier de 50 lignes, et les
@@ -69,7 +70,26 @@ js/engine/     le moteur de preuve — indépendant du DOM, testé à part
 js/content/    le parcours : mondes, niveaux, consignes, solutions, doc des tactiques
 js/ui/         les vues (DOM à la main, pas de framework)
 tests/         moteur, contenu, et rendu des vues dans un DOM minimal
+tools/browse.mjs  pilotage d'un Chrome headless (captures, mesures, interaction)
 ```
+
+### Vérifier le rendu pour de vrai
+
+`tools/browse.mjs` pilote un Chrome headless par le Chrome DevTools Protocol, sans
+dépendance (Node 22 fournit `WebSocket` et `fetch`) :
+
+```bash
+node tools/browse.mjs audit http://localhost:8123/ --width 390 --dpr 2
+node tools/browse.mjs shoot http://localhost:8123/#/niveau/1.7 --width 1440 --full
+node tools/browse.mjs play 1.7 --type "rw [add_zero]"     # joue vraiment le niveau
+```
+
+`audit` signale les débordements horizontaux, les contrastes sous le seuil WCAG AA
+(avec composition de l'alpha) et les erreurs de console. `play` sème une progression
+dans localStorage, recharge, tape la preuve et rapporte l'état de la fenêtre
+d'objectif. Deux pièges sont documentés en tête du fichier : il faut créer son propre
+onglet, et sous Windows une fenêtre ne descend pas sous ~500 px — c'est
+`Emulation.setDeviceMetricsOverride` qui fixe la largeur.
 
 Le moteur ne dépend de rien et ne connaît pas le navigateur : c'est ce qui permet de
 rejouer les 55 solutions de référence dans la CI.
