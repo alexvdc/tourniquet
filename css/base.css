@@ -1,0 +1,177 @@
+/* Remise à zéro, coquille du site, en-tête et pied de page. */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-abyss);
+  color: var(--chalk);
+  font-family: var(--font-ui);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  /* Un très léger grain de tableau noir, en dégradés seulement. */
+  background-image:
+    radial-gradient(120% 80% at 15% -10%, rgba(146, 152, 228, 0.07), transparent 60%),
+    radial-gradient(90% 60% at 100% 0%, rgba(215, 165, 74, 0.05), transparent 55%);
+  background-attachment: fixed;
+}
+
+h1, h2, h3, h4 { margin: 0; font-weight: 400; line-height: 1.15; }
+p { margin: 0 0 1em; }
+p:last-child { margin-bottom: 0; }
+ul, ol { margin: 0 0 1em; padding-left: 1.3em; }
+li { margin-bottom: 0.3em; }
+
+a { color: inherit; text-decoration-color: var(--gold-deep); text-underline-offset: 3px; }
+a:hover { text-decoration-color: var(--gold); }
+
+button { font: inherit; color: inherit; }
+
+code, kbd, pre, samp, textarea { font-family: var(--font-mono); }
+
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  padding: var(--gap-s) var(--gap-m);
+  background: var(--gold);
+  color: var(--ink-abyss);
+  z-index: 20;
+}
+.skip-link:focus { left: 0; }
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────────────── en-tête */
+
+.masthead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--gap-m);
+  padding: 0.7rem clamp(1rem, 4vw, 3rem);
+  border-bottom: var(--rule);
+  background: color-mix(in srgb, var(--ink-abyss) 88%, transparent);
+  backdrop-filter: blur(10px);
+}
+
+.wordmark {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  text-decoration: none;
+  margin-right: auto;
+}
+.wordmark__glyph {
+  font-family: var(--font-mono);
+  font-size: 1.1rem;
+  color: var(--gold);
+  transform: translateY(-1px);
+}
+.wordmark__text {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  letter-spacing: 0.02em;
+}
+.wordmark:hover .wordmark__glyph { color: var(--verdigris); }
+
+.mainnav { display: flex; gap: clamp(0.5rem, 2vw, 1.6rem); }
+.mainnav__link {
+  font-size: var(--step--1);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--chalk-dim);
+  text-decoration: none;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid transparent;
+}
+.mainnav__link:hover { color: var(--chalk); }
+.mainnav__link[aria-current="page"] {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.standing {
+  display: grid;
+  grid-template-columns: auto;
+  gap: 0.15rem;
+  justify-items: end;
+  text-decoration: none;
+  min-width: 9rem;
+}
+.standing__rank {
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  color: var(--chalk);
+}
+.standing__xp {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--chalk-faint);
+}
+.standing__bar {
+  appearance: none;
+  width: 9rem;
+  height: 3px;
+  border: 0;
+  background: var(--ink-line);
+}
+.standing__bar::-webkit-progress-bar { background: var(--ink-line); }
+.standing__bar::-webkit-progress-value { background: var(--gold); transition: width var(--dur) var(--ease); }
+.standing__bar::-moz-progress-bar { background: var(--gold); }
+
+@media (max-width: 860px) {
+  .masthead { flex-wrap: wrap; row-gap: var(--gap-s); }
+  .wordmark { margin-right: var(--gap-m); }
+  .standing { order: 3; margin-left: auto; }
+  .mainnav { order: 4; width: 100%; overflow-x: auto; }
+}
+
+/* ─────────────────────────────────────────────────────── contenu */
+
+#app {
+  flex: 1;
+  padding: clamp(1.4rem, 4vw, 3.4rem) clamp(1rem, 4vw, 3rem) var(--gap-xl);
+}
+
+/* ─────────────────────────────────────────────────────── pied */
+
+.colophon {
+  border-top: var(--rule);
+  padding: var(--gap-l) clamp(1rem, 4vw, 3rem) var(--gap-l);
+  display: grid;
+  gap: var(--gap-s);
+  font-size: var(--step--1);
+  color: var(--chalk-faint);
+  background: var(--ink-hall);
+}
+.colophon__note {
+  font-family: var(--font-prose);
+  max-width: var(--measure);
+  color: var(--chalk-dim);
+}
+.colophon__note strong { color: var(--chalk); font-weight: 600; }
+.colophon__links { display: flex; flex-wrap: wrap; gap: var(--gap-m); }
+.colophon__links a { text-decoration: none; border-bottom: 1px solid var(--ink-line); }
+.colophon__links a:hover { color: var(--gold); border-bottom-color: var(--gold); }
+.colophon__meta { font-family: var(--font-prose); font-style: italic; max-width: var(--measure); }

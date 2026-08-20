@@ -1,0 +1,76 @@
+/* Tourniquet — jetons de design.
+   Deux matières, et une seule règle : l'ardoise pour ce qui se démontre,
+   le vélin pour ce qui s'explique. Rien d'autre ne change de fond. */
+
+:root {
+  /* Ardoise */
+  --ink-abyss: #0b0e14;
+  --ink-hall: #121821;
+  --ink-rise: #19212d;
+  --ink-high: #212b39;
+  --ink-line: #2a3543;
+  --ink-line-soft: #1f2835;
+
+  /* Craie */
+  --chalk: #e7ebf1;
+  --chalk-dim: #9dabbd;
+  --chalk-faint: #667689;
+
+  /* Vélin */
+  --vellum: #ece2cd;
+  --vellum-deep: #e0d4b9;
+  --vellum-line: #cdbc9b;
+  --sepia: #241f16;
+  --sepia-dim: #5b5140;
+
+  /* Accents */
+  --gold: #d7a54a;
+  --gold-deep: #a97c2c;
+  --gold-wash: rgba(215, 165, 74, 0.12);
+  --verdigris: #4fb59c;
+  --verdigris-wash: rgba(79, 181, 156, 0.12);
+  --madder: #d06a54;
+  --madder-wash: rgba(208, 106, 84, 0.12);
+  --iris: #9298e4;
+  --iris-wash: rgba(146, 152, 228, 0.12);
+
+  /* Typographie */
+  --font-display: "Bodoni Moda", "Didot", Georgia, serif;
+  --font-prose: "Spectral", Georgia, "Times New Roman", serif;
+  --font-ui: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+
+  --step--1: clamp(0.78rem, 0.76rem + 0.1vw, 0.84rem);
+  --step-0: clamp(0.94rem, 0.9rem + 0.2vw, 1.02rem);
+  --step-1: clamp(1.1rem, 1.02rem + 0.4vw, 1.3rem);
+  --step-2: clamp(1.35rem, 1.2rem + 0.8vw, 1.8rem);
+  --step-3: clamp(1.8rem, 1.4rem + 2vw, 3rem);
+  --step-4: clamp(2.4rem, 1.6rem + 4.4vw, 5.2rem);
+
+  /* Rythme */
+  --gap-xs: 0.35rem;
+  --gap-s: 0.7rem;
+  --gap-m: 1.2rem;
+  --gap-l: 2rem;
+  --gap-xl: 3.4rem;
+  --radius: 3px;
+  --radius-l: 6px;
+  --rule: 1px solid var(--ink-line);
+  --measure: 62ch;
+
+  --shadow-panel: 0 1px 0 rgba(255, 255, 255, 0.03), 0 18px 40px -24px rgba(0, 0, 0, 0.9);
+  --shadow-lift: 0 24px 60px -30px rgba(0, 0, 0, 0.95);
+
+  --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+  --dur: 260ms;
+}
+
+/* Le jeu est nocturne par choix : l'ardoise est le sujet, pas un thème.
+   On respecte quand même les préférences de contraste. */
+@media (prefers-contrast: more) {
+  :root {
+    --chalk-dim: #c3cddb;
+    --chalk-faint: #93a1b3;
+    --ink-line: #43536a;
+  }
+}
