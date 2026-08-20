@@ -62,7 +62,7 @@ js/engine/     le moteur de preuve — indépendant du DOM, testé à part
   printer.js   impression avec le minimum de parenthèses
   reduce.js    bêta-réduction, dépliage de ¬ et ≠, arithmétique littérale
   elab.js      unification du premier ordre, infer/check, réécriture
-  tactics.js   les 25 tactiques
+  tactics.js   les 26 tactiques
   ring.js      normalisation polynomiale (la procédure de décision de `ring`)
   lib.js       la bibliothèque de lemmes
   proof.js     exécution d'un script de tactiques, ligne par ligne
