@@ -502,6 +502,46 @@ Le point important est le témoin. Tu extrais **un** \`x\` de l’hypothèse, et
       ],
       sol: ['cases h with x hx', 'cases hx with hp hq', 'constructor', 'use x', 'use x'],
     },
+    {
+      id: '7.7',
+      name: 'obtenir',
+      title: 'La façon moderne',
+      ctx: ['p q : ℕ → Prop', 'h : ∃ (x : ℕ), p x ∧ q x'],
+      goal: '∃ (x : ℕ), q x ∧ p x',
+      lemmas: [],
+      tactics: [...T_QUANT, 'obtain'],
+      xp: 40,
+      brief: `Au boss précédent, il t’a fallu **deux** \`cases\` : un pour ouvrir le \`∃\`, un autre pour casser le \`∧\` qu’il contenait. C’est la syntaxe des débuts de Lean 4, et personne ne l’écrit plus.
+
+L’idiome de Mathlib aujourd’hui :
+
+\`\`\`
+obtain ⟨x, hp, hq⟩ := h
+\`\`\`
+
+Une seule ligne, et le motif **décrit la forme** de ce qu’on décompose. Les chevrons se replient à droite : \`⟨x, hp, hq⟩\` veut dire \`⟨x, ⟨hp, hq⟩⟩\`, donc « un témoin, puis une paire ». Peu importe la profondeur, tu écris la forme et Lean suit.
+
+Pour une disjonction, le motif change de forme lui aussi :
+
+\`\`\`
+obtain hp | hnp := em p
+\`\`\`
+
+La barre \`|\` ouvre **deux objectifs**, un par branche — c’est le \`cases\` d’un \`∨\`, en plus lisible, parce qu’on voit tout de suite qu’il y a deux cas et comment ils s’appellent.
+
+Deux cousines à connaître, que ce moteur n’a pas : \`rcases\` fait la même chose avec une syntaxe de motifs encore plus riche, et \`rintro\` combine \`intro\` et la décomposition en un seul geste. Dans Mathlib, tu verras surtout \`obtain\` et \`rintro\`.`,
+      examples: [
+        { code: 'obtain ⟨x, hp, hq⟩ := h', note: 'Ouvre un ∃ contenant un ∧, en une ligne.' },
+        { code: 'obtain hp | hq := h', note: 'Une disjonction : deux objectifs, deux noms.' },
+      ],
+      hints: [
+        'Une seule ligne suffit pour tout ouvrir : `obtain ⟨x, hp, hq⟩ := h`.',
+        'Puis fournis le témoin avec `use x`.',
+        'Il reste une paire à construire, dans l’autre ordre : `exact ⟨hq, hp⟩`.',
+      ],
+      sol: ['obtain ⟨x, hp, hq⟩ := h', 'use x', 'exact ⟨hq, hp⟩'],
+      lean: `-- Dans le vrai Lean, on écrirait plutôt :\nexample (p q : ℕ → Prop) (h : ∃ x, p x ∧ q x) : ∃ x, q x ∧ p x := by\n  obtain ⟨x, hp, hq⟩ := h\n  exact ⟨x, hq, hp⟩`,
+    },
   ],
 };
 

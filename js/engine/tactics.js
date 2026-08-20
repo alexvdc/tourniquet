@@ -14,6 +14,7 @@ import {
   ElabError, unify, check, infer, openTelescope, rewriteWith, lookupHyp, resolveName,
 } from './elab.js';
 import { ringEq, toPoly, showPoly } from './ring.js';
+import { decideLinear } from './arith.js';
 
 export class TacticError extends Error {
   constructor(msg) { super(msg); this.name = 'TacticError'; }
@@ -323,6 +324,95 @@ def('cases', 'name', (state, rest, env) => {
   fail(`\`cases\` ne sait pas décomposer \`${show(type)}\`. Il travaille sur ∧, ∨, ↔, ∃, ℕ et False.`);
 });
 
+// ── obtain ─────────────────────────────────────────────────────────────────
+
+/**
+ * Analyse un motif de destructuration :
+ *   `h`            → un nom
+ *   `⟨a, b, c⟩`    → un n-uplet, associatif à droite comme en Lean
+ *   `hp | hq`      → une alternance, qui ouvre deux objectifs
+ */
+function parsePattern(src) {
+  const s = src.trim();
+  const alts = splitTop(s, '|');
+  if (alts.length > 1) return { kind: 'alt', parts: alts.map(parsePattern) };
+  if (s.startsWith('⟨')) {
+    if (!s.endsWith('⟩')) fail(`motif mal fermé : \`${s}\` (il manque un ⟩).`);
+    const parts = splitTop(s.slice(1, -1), ',').map(parsePattern);
+    if (parts.length < 2) fail('un motif ⟨…⟩ contient au moins deux composantes.');
+    return { kind: 'tuple', parts };
+  }
+  if (!/^[A-Za-z_][A-Za-z0-9_'!]*$/.test(s)) fail(`\`${s}\` n’est pas un nom d’hypothèse valide.`);
+  return { kind: 'name', name: s };
+}
+
+/**
+ * Applique un motif à un type et rend la liste des objectifs produits.
+ * Le contexte s'accumule au fil de la descente ; une alternance duplique.
+ */
+function destructure(pattern, type, ctx, target, env) {
+  const t = whnfHead(type);
+
+  if (pattern.kind === 'name') {
+    return [mkGoal([...ctx, { name: freshHypName(pattern.name, ctx), type }], target)];
+  }
+
+  if (pattern.kind === 'alt') {
+    const or = match(t, 'Or', 2);
+    if (!or) {
+      fail(`le motif \`a | b\` décompose une disjonction, or \`${show(type)}\` n’en est pas une.`);
+    }
+    if (pattern.parts.length !== 2) fail('une alternance de motifs se lit `gauche | droite` : deux branches.');
+    return [
+      ...destructure(pattern.parts[0], or[0], ctx, target, env),
+      ...destructure(pattern.parts[1], or[1], ctx, target, env),
+    ];
+  }
+
+  // n-uplet : on prend la première composante, le reste se replie à droite.
+  const [first, ...rest] = pattern.parts;
+  const tail = rest.length === 1 ? rest[0] : { kind: 'tuple', parts: rest };
+
+  const and = match(t, 'And', 2);
+  if (and) {
+    return destructure(first, and[0], ctx, target, env)
+      .flatMap((g) => destructure(tail, and[1], g.ctx, g.target, env));
+  }
+  const iff = match(t, 'Iff', 2);
+  if (iff) {
+    return destructure(first, Pi('_', iff[0], iff[1]), ctx, target, env)
+      .flatMap((g) => destructure(tail, Pi('_', iff[1], iff[0]), g.ctx, g.target, env));
+  }
+  const ex = match(t, 'Exists', 1);
+  if (ex && ex[0].k === 'lam') {
+    if (first.kind !== 'name') {
+      fail('la première composante d’un ∃ est son témoin : donne-lui un nom, pas un motif.');
+    }
+    const witness = freshHypName(first.name, ctx);
+    const ctx2 = [...ctx, { name: witness, type: ex[0].t }];
+    return destructure(tail, subst(ex[0].b, ex[0].x, Var(witness)), ctx2, target, env);
+  }
+  fail(`\`${show(type)}\` ne se décompose pas en ⟨…⟩. Ce motif marche sur ∧, ↔ et ∃.`);
+}
+
+def('obtain', 'pattern', (state, rest, env) => {
+  const goal = state.goals[0];
+  const cut = rest.indexOf(':=');
+  if (cut < 0) {
+    fail('`obtain` s’écrit `obtain ⟨x, hx⟩ := h` : un motif, `:=`, puis ce qu’on décompose.');
+  }
+  const pattern = parsePattern(rest.slice(0, cut));
+  const src = rest.slice(cut + 2).trim();
+  if (!src) fail('`obtain` attend un terme après `:=`.');
+
+  // Comme `cases`, on accepte une hypothèse du contexte ou n'importe quel terme.
+  const hyp = lookupHyp(goal.ctx, src);
+  const type = hyp ? hyp.type : typeOfTerm(src, env, goal, 'terme à décomposer').type;
+  const ctx = hyp ? goal.ctx.filter((h) => h.name !== src) : goal.ctx;
+
+  return replaceFirst(state, destructure(pattern, type, ctx, goal.target, env));
+});
+
 // ── constructor / left / right / use ───────────────────────────────────────
 def('constructor', 'none', (state, rest, env) => {
   const goal = state.goals[0];
@@ -554,6 +644,25 @@ def('norm_num', 'none', (state, rest, env) => {
   fail(`\`norm_num\` ne conclut pas sur \`${show(goal.target)}\` : il calcule, il ne raisonne pas.`);
 });
 TACTICS.decide = { ...TACTICS.norm_num, name: 'decide' };
+
+// ── omega / linarith ───────────────────────────────────────────────────────
+
+/**
+ * Décision des inégalités linéaires. Contrairement à `rw`, elle ne suit pas tes
+ * ordres : elle cherche une contradiction entre les hypothèses et la négation de
+ * l'objectif, et conclut si elle en trouve une.
+ */
+const linearTactic = (name) => (state, rest, env) => {
+  const goal = state.goals[0];
+  if (rest.trim()) fail(`\`${name}\` ne prend pas d’argument : elle regarde le contexte entier.`);
+  const verdict = decideLinear(goal.ctx, goal.target);
+  if (!verdict.ok) {
+    fail(`\`${name}\` ne conclut pas sur \`${show(goal.target)}\` : ${verdict.reason}`);
+  }
+  return replaceFirst(state, []);
+};
+def('omega', 'none', linearTactic('omega'));
+def('linarith', 'none', linearTactic('linarith'));
 
 // ── sorry ──────────────────────────────────────────────────────────────────
 def('sorry', 'none', (state, rest, env) => ({

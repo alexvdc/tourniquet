@@ -15,6 +15,7 @@ import { runProof } from '../js/engine/proof.js';
 import { TACTIC_NAMES } from '../js/engine/tactics.js';
 import { TACTIC_DOCS } from '../js/content/tactics-doc.js';
 import { LEMMAS, ALWAYS } from '../js/engine/lib.js';
+import { SYMBOLES, VOCABULAIRE } from '../js/content/lexique.js';
 import { showState } from '../js/engine/printer.js';
 
 // Les lignes de continuation d'un `calc` commencent par `_` : ce n'est pas une
@@ -214,5 +215,35 @@ test('le moteur ne boucle pas sur une entrée absurde', () => {
     try { runProof(script, level); } catch { /* une erreur est acceptable */ }
     const ms = Number(process.hrtime.bigint() - started) / 1e6;
     assert.ok(ms < 3000, `« ${script} » a pris ${Math.round(ms)} ms`);
+  }
+});
+
+
+/* ───────────────────────────────────── le lexique */
+
+test('chaque symbole du lexique est complet et renvoie à un monde existant', () => {
+  const worlds = new Set(WORLDS.map((w) => w.num));
+  for (const s of SYMBOLES) {
+    assert.ok(s.glyph && s.name && s.type, `symbole incomplet : ${JSON.stringify(s.glyph)}`);
+    assert.ok(s.lire?.length > 3, `${s.glyph} : il manque la lecture à voix haute`);
+    assert.ok(s.sens?.length > 60, `${s.glyph} : explication trop courte`);
+    assert.ok(s.exemple?.length > 2, `${s.glyph} : il manque un exemple`);
+    assert.ok(worlds.has(s.monde), `${s.glyph} renvoie au monde ${s.monde}, qui n’existe pas`);
+  }
+  assert.ok(VOCABULAIRE.every((v) => v.def.length > 80), 'une définition du vocabulaire est trop maigre');
+});
+
+test('les symboles que le jeu affiche sont tous dans le lexique', () => {
+  // On balaie les énoncés des niveaux : tout signe non alphanumérique qu'un
+  // apprenant peut lire doit être expliqué quelque part.
+  const expliqués = SYMBOLES.map((s) => s.glyph).join(' ');
+  const attendus = ['∀', '∃', '→', '∧', '∨', '¬', '↔', '≤', 'ℕ', '⊢', '::', '++', '≠'];
+  for (const g of attendus) {
+    assert.ok(expliqués.includes(g), `le symbole ${g} n’est pas dans le lexique`);
+  }
+  const utilisés = new Set();
+  for (const l of LEVELS) for (const c of l.goal) if (/[∀∃→∧∨¬↔≤<≥>≠∎]/.test(c)) utilisés.add(c);
+  for (const c of utilisés) {
+    assert.ok(expliqués.includes(c), `le symbole ${c} apparaît dans un énoncé mais pas dans le lexique`);
   }
 });

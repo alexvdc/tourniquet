@@ -230,7 +230,7 @@ export function renderFeats(host) {
           h('button.btn.btn--small.btn--danger', {
             type: 'button',
             onclick: async () => {
-              if (!window.confirm('Tout effacer ? Les 59 preuves repartent de zéro.')) return;
+              if (!window.confirm('Tout effacer ? Les 68 preuves repartent de zéro.')) return;
               store.resetAll();
               renderFeats(host);
             },

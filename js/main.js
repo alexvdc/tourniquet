@@ -4,6 +4,7 @@
 import { renderAtlas, renderFeats } from './ui/atlas.js';
 import { renderLevel } from './ui/level.js';
 import { renderGrimoire, renderSandbox } from './ui/grimoire.js';
+import { renderLexique } from './ui/lexique.js';
 import { TOTAL_XP, rankFor } from './content/index.js';
 import * as store from './state.js';
 
@@ -13,6 +14,7 @@ let teardown = () => {};
 const ROUTES = [
   { re: /^#?\/?$/, name: 'atlas', run: (host) => renderAtlas(host) },
   { re: /^#\/niveau\/(.+)$/, name: 'level', run: (host, m) => renderLevel(host, decodeURIComponent(m[1])) },
+  { re: /^#\/lexique$/, name: 'lexique', run: (host) => renderLexique(host) },
   { re: /^#\/grimoire$/, name: 'grimoire', run: (host) => renderGrimoire(host) },
   { re: /^#\/bac-a-sable$/, name: 'sandbox', run: (host) => renderSandbox(host) },
   { re: /^#\/hauts-faits$/, name: 'feats', run: (host) => renderFeats(host) },

@@ -33,6 +33,13 @@ const TACTIC_HINTS = {
   unfold: 'déplie une définition',
   repeat: 'répète tant que ça marche',
   sorry: 'admet (aucune XP)',
+  calc: 'chaîne d’égalités lisible',
+  obtain: 'décompose avec un motif',
+  omega: 'décide les inégalités',
+  linarith: 'décide les inégalités',
+  assumption: 'cherche l’hypothèse',
+  decide: 'calcule et tranche',
+  all_goals: 'applique à tous les objectifs',
 };
 
 export function renderLevel(host, id) {

@@ -2,7 +2,7 @@
 
 **→ [tourniquet.netlify.app](https://tourniquet.netlify.app)**
 
-**Apprendre Lean 4 en démontrant.** 59 niveaux, de « pourquoi 2 + 2 = 4 » aux tactiques
+**Apprendre Lean 4 en démontrant.** 68 niveaux, de « pourquoi 2 + 2 = 4 » aux tactiques
 de décision de Mathlib. Site statique, zéro build, zéro serveur, zéro dépendance.
 
 > Le nom vient du symbole `⊢`, le *tourniquet*, qui sépare ce qu'on sait de ce qu'il
@@ -21,19 +21,20 @@ ligne avec `ring`.
 | 0 | Le Tableau | lire une fenêtre d'objectif, `rfl`, `exact`, `rw` |
 | 1 | Peano | les axiomes de `+`, **2 + 2 = 4** en quatre réécritures, et l'injectivité de `succ` |
 | 2 | La Récurrence | `induction`, `zero_add`, `add_assoc`, `add_comm` |
-| 3 | Le Produit | `mul_add`, `mul_comm`, distributivité |
+| 3 | Le Produit | `mul_add`, `mul_comm`, distributivité, et `calc` pour des preuves lisibles |
 | 4 | Les Puissances | `pow_add`, puis la découverte de `ring` |
 | 5 | L'Implication | Curry–Howard, `intro`, `apply`, le combinateur S |
 | 6 | Les Connecteurs | `∧ ∨ ¬ ↔`, `cases`, `constructor`, De Morgan, et le tiers exclu |
-| 7 | Les Quantificateurs | `∀ ∃`, `use`, pourquoi ∀∃ ≠ ∃∀ |
-| 8 | L'Ordre | `≤` comme `∃`, transitivité |
-| 9 | Le Vrai Lean | `simp`, `norm_num`, `have`, installer Lean, et l'identité remarquable à la main |
+| 7 | Les Quantificateurs | `∀ ∃`, `use`, `obtain`, pourquoi ∀∃ ≠ ∃∀ |
+| 8 | L'Ordre | `≤` comme `∃`, transitivité, puis `omega` qui décide tout seul |
+| 9 | Les Listes | `[]`, `::`, `++`, la récurrence sur autre chose que ℕ, `reverse (reverse l) = l` |
+| 10 | Le Vrai Lean | `simp`, `norm_num`, `have`, installer Lean, et l'identité remarquable à la main |
 
 ## Faire tourner le site
 
 ```bash
 npm run dev     # http://localhost:8123
-npm test        # moteur, contenu (les 59 preuves rejouées) et rendu des vues
+npm test        # moteur, contenu (les 68 preuves rejouées) et rendu des vues
 npm run audit   # rendu réel dans Chrome : débordements, contrastes, console
 ```
 
@@ -65,9 +66,10 @@ js/engine/     le moteur de preuve — indépendant du DOM, testé à part
   elab.js      unification du premier ordre, infer/check, réécriture
   tactics.js   les 26 tactiques
   ring.js      normalisation polynomiale (la procédure de décision de `ring`)
+  arith.js     élimination de Fourier–Motzkin (`omega` / `linarith`)
   lib.js       la bibliothèque de lemmes
   proof.js     exécution d'un script de tactiques, ligne par ligne
-js/content/    le parcours : mondes, niveaux, consignes, solutions, doc des tactiques
+js/content/    le parcours : mondes, niveaux, consignes, solutions, doc, lexique
 js/ui/         les vues (DOM à la main, pas de framework)
 tests/         moteur, contenu, et rendu des vues dans un DOM minimal
 tools/browse.mjs  pilotage d'un Chrome headless (captures, mesures, interaction)
@@ -92,7 +94,7 @@ onglet, et sous Windows une fenêtre ne descend pas sous ~500 px — c'est
 `Emulation.setDeviceMetricsOverride` qui fixe la largeur.
 
 Le moteur ne dépend de rien et ne connaît pas le navigateur : c'est ce qui permet de
-rejouer les 59 solutions de référence dans la CI.
+rejouer les 68 solutions de référence dans la CI.
 
 ### Ajouter un niveau
 
@@ -123,8 +125,10 @@ Important, parce que c'est toute la différence avec l'outil réel :
 - **Unification du premier ordre seulement.** Les motifs d'ordre supérieur (`?f x`) ne
   s'unifient pas ; `Exists.intro` passe par la tactique `use` et les constructeurs
   anonymes `⟨_, _⟩`.
-- **Un seul type de données**, ℕ, plus les propositions. Pas de classes de types, pas
-  d'univers, pas de structures, pas de ℤ.
+- **Deux types de données**, ℕ et `List ℕ`, plus les propositions. Pas de classes de
+  types, pas d'univers, pas de structures, pas de ℤ, pas de polymorphisme.
+- **`omega` raisonne sur les rationnels** : correct, mais incomplet sur les entiers,
+  là où le vrai `omega` décide l'arithmétique entière.
 - **`ring` et `norm_num` décident sans certificat.** Dans Lean, elles produisent une
   preuve vérifiable.
 

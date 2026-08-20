@@ -1,12 +1,12 @@
 // Mondes 8 et 9 : l'ordre, puis le passage au vrai Lean.
 
-const T_ORDER = ['rfl', 'exact', 'apply', 'intro', 'intros', 'cases', 'constructor',
+const T_ORDER = ['rfl', 'exact', 'apply', 'intro', 'intros', 'cases', 'obtain', 'constructor',
   'use', 'rw', 'norm_num', 'left', 'right'];
 // Le dernier monde n'a plus de verrou : ce sont littéralement toutes les
 // tactiques du moteur, pour que le Grimoire dise vrai.
 const T_ALL = [...T_ORDER, 'induction', 'simp', 'have', 'ring', 'revert', 'unfold',
   'exfalso', 'contradiction', 'trivial', 'repeat', 'sorry', 'decide', 'assumption',
-  'all_goals', 'intros', 'calc'];
+  'all_goals', 'intros', 'calc', 'omega', 'linarith'];
 
 const ADD_ALL = ['add_zero', 'add_succ', 'zero_add', 'succ_add', 'add_assoc',
   'add_comm', 'add_right_comm'];
@@ -143,6 +143,44 @@ Ce n’est pas une limitation de ce jeu, c’est un vrai réflexe de Lean. Quand
       examples: [{ code: 'apply le_trans a b (succ b)', note: 'Deux nouveaux objectifs : `a ≤ b` et `b ≤ succ b`.' }],
       hints: ['`apply le_trans a b (succ b)`.', 'Premier objectif : tu l’as en hypothèse.', 'Second : `exact le_succ_self b`.'],
       sol: ['apply le_trans a b (succ b)', 'exact hab', 'exact le_succ_self b'],
+    },
+    {
+      id: '8.6',
+      name: 'machine_a_inegalites',
+      title: 'La machine à inégalités',
+      ctx: ['x y : ℕ', 'h1 : x + 2 * y = 10', 'h2 : y = 3'],
+      goal: 'x = 4',
+      lemmas: ['le_iff_exists_add', 'le_refl', 'le_trans', 'le_succ_self', 'zero_le', ...ADD_ALL, ...MUL_ALL],
+      tactics: [...T_ORDER, 'omega', 'linarith'],
+      arith: true,
+      xp: 40,
+      brief: `Tu viens de démontrer la transitivité à la main : déplier la définition, extraire deux témoins, en fabriquer un troisième. Cinq lignes de plomberie pour une évidence.
+
+Voici l’outil qui fait ça tout seul, et bien plus :
+
+\`\`\`
+omega
+\`\`\`
+
+Elle prend **toutes** les hypothèses du contexte, y ajoute la négation de l’objectif, et cherche une contradiction dans le système d’inégalités linéaires qui en résulte. S’il y en a une, l’objectif était vrai. C’est de l’élimination de variables — la même méthode que pour résoudre un système au lycée, poussée jusqu’au bout par la machine.
+
+Un ingrédient invisible fait la moitié du travail : dans ℕ, **toute inconnue est positive ou nulle**. C’est ce qui permet à \`omega\` de conclure sur des énoncés qui seraient faux sur ℤ.
+
+Ce qu’elle sait faire : \`≤\`, \`<\`, \`≥\`, \`>\`, \`=\` entre expressions **linéaires** — sommes, différences, multiplications par une constante.
+
+Ce qu’elle ne sait pas faire : le non-linéaire. \`a * b\` est pour elle une inconnue opaque, pas un produit. Elle ne démontrera jamais \`mul_comm\`, et c’est normal : ce n’est pas de l’arithmétique linéaire.
+
+Dans Mathlib, \`omega\` décide l’arithmétique linéaire entière (ℕ et ℤ) et \`linarith\` fait le même travail sur les corps ordonnés, en acceptant en plus des hypothèses fournies à la main. Ici les deux noms font la même chose. Deux réflexes à prendre : quand un objectif est « évidemment vrai par calcul sur des inégalités », essaie \`omega\` avant d’écrire quoi que ce soit.`,
+      examples: [
+        { code: 'omega', note: 'Résout le système formé par les hypothèses et l’objectif.' },
+        { code: 'linarith', note: 'Ici, un alias — dans Mathlib, sa cousine pour les corps ordonnés.' },
+      ],
+      hints: [
+        'Les deux hypothèses suffisent : `x + 2y = 10` et `y = 3` donnent `x = 4`.',
+        'Tu n’as rien à réécrire. Une seule tactique, cinq lettres.',
+      ],
+      sol: ['omega'],
+      lean: `-- Dans le vrai Lean, exactement pareil :\nexample (x y : ℕ) (h1 : x + 2 * y = 10) (h2 : y = 3) : x = 4 := by\n  omega`,
     },
   ],
 };

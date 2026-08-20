@@ -466,3 +466,82 @@
   max-width: 40rem;
 }
 .dangerzone p { font-family: var(--font-prose); font-size: var(--step--1); color: var(--chalk-faint); }
+
+/* ═══════════════════════════════════════════════════════ lexique */
+
+.glyphgrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(21rem, 1fr));
+  gap: var(--gap-s);
+}
+
+.glyphcard {
+  display: grid;
+  grid-template-columns: 4.6rem minmax(0, 1fr);
+  gap: 0 var(--gap-m);
+  padding: 0.9rem 1rem;
+  border: var(--rule);
+  border-left: 2px solid var(--gold-deep);
+  border-radius: var(--radius);
+  background: var(--ink-hall);
+}
+
+.glyphcard__face {
+  display: grid;
+  gap: 0.2rem;
+  justify-items: center;
+  align-content: start;
+  padding-top: 0.1rem;
+}
+.glyphcard__glyph {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--gold);
+}
+.glyphcard__type {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--chalk-faint);
+  text-align: center;
+  word-break: break-all;
+}
+
+.glyphcard__body { display: grid; gap: 0.3rem; }
+.glyphcard__name {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+}
+.glyphcard__lire {
+  font-family: var(--font-prose);
+  font-style: italic;
+  font-size: var(--step--1);
+  color: var(--gold);
+  margin: 0;
+}
+.glyphcard__ex {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  line-height: 1.6;
+  margin: 0.2rem 0 0;
+  padding: 0.45rem 0.6rem;
+  background: var(--ink-abyss);
+  border: 1px solid var(--ink-line-soft);
+  border-radius: 2px;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--chalk-dim);
+}
+.glyphcard__link {
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  color: var(--chalk-faint);
+  text-decoration: none;
+  margin-top: 0.15rem;
+}
+.glyphcard__link:hover { color: var(--gold); }
+
+@media (max-width: 460px) {
+  .glyphcard { grid-template-columns: 3.2rem minmax(0, 1fr); gap: 0 var(--gap-s); }
+  .glyphcard__glyph { font-size: 1.5rem; }
+}

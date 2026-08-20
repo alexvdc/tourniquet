@@ -254,6 +254,82 @@ Mathlib a toute une famille de ces combinateurs : \`<;>\` enchaîne, \`any_goals
 
 Utilisée correctement, c’est un excellent outil de travail : on écrit le squelette d’une preuve avec des \`sorry\` partout, on vérifie que la structure tient, puis on les remplace un par un. \`#print axioms mon_theoreme\` dit ensuite si un \`sorry\` traîne encore.`,
   },
+  {
+    name: 'calc',
+    group: 'Structure',
+    world: 3,
+    syntax: ['calc a = b := by rw [h]', '_ = c := by rw [h2]', '_ = d := h3'],
+    doc: `La tactique qui rend une preuve lisible. Une chaîne d'égalités, chacune sur sa
+  ligne, chacune justifiée après \`:=\` — par \`by <tactique>\` ou par un terme :
+  
+  \`\`\`
+  calc (a + b) * c = a * c + b * c := by rw [add_mul]
+    _ = c * a + b * c := by rw [mul_comm a c]
+    _ = c * a + c * b := by rw [mul_comm b c]
+  \`\`\`
+  
+  Le \`_\` reprend le membre droit de la ligne précédente : c'est ce qui donne à la
+  preuve sa forme d'escalier. La transitivité de l'égalité est appliquée pour toi, et
+  chaque étape est vérifiée séparément — donc une erreur est toujours localisée.
+  
+  Compare avec la même preuve en trois \`rw\` : le résultat est identique pour la
+  machine, mais l'un s'explique et l'autre se rejoue. Mathlib est écrite en \`calc\`
+  partout où le calcul compte plus que l'astuce.
+  
+  Ce moteur n'enchaîne que des égalités. Le vrai Lean accepte n'importe quelle
+  relation transitive — \`≤\`, \`<\`, \`⊆\`, et même un mélange des trois, dont il
+  déduit la relation finale.`,
+  },
+  {
+    name: 'obtain',
+    group: 'Structure',
+    world: 7,
+    syntax: ['obtain ⟨x, hx⟩ := h', 'obtain ⟨x, hp, hq⟩ := h', 'obtain hp | hnp := em p'],
+    doc: `L'idiome moderne de Mathlib pour décomposer une hypothèse. Là où \`cases\` demande
+  un appel par niveau d'imbrication, \`obtain\` prend un **motif** qui décrit la forme :
+  
+  - \`⟨x, hx⟩\` pour un \`∃\` ou un \`∧\` ;
+  - \`⟨x, hp, hq⟩\` pour un \`∃\` contenant un \`∧\` — les chevrons se replient à droite,
+    donc c'est \`⟨x, ⟨hp, hq⟩⟩\` ;
+  - \`hp | hq\` pour une disjonction : deux objectifs, un par branche ;
+  - \`⟨mp, mpr⟩\` pour une équivalence, qui donne les deux implications.
+  
+  Comme \`cases\`, elle accepte n'importe quel terme après \`:=\`, pas seulement une
+  hypothèse du contexte : \`obtain hp | hnp := em p\` ouvre les deux mondes possibles.
+  
+  Ses cousines dans Mathlib, absentes de ce moteur : \`rcases\` (motifs encore plus
+  riches, avec alternances imbriquées) et \`rintro\`, qui introduit *et* décompose d'un
+  seul geste. C'est \`rintro\` que tu verras le plus souvent en tête de preuve.`,
+  },
+  {
+    name: 'omega / linarith',
+    key: 'omega',
+    group: 'Automatisation',
+    world: 8,
+    syntax: ['omega', 'linarith'],
+    doc: `Décide les inégalités linéaires. Elle prend **toutes** les hypothèses du contexte,
+  y ajoute la négation de l'objectif, et cherche une contradiction dans le système
+  obtenu — par élimination de variables (Fourier–Motzkin). S'il y a contradiction,
+  l'objectif était vrai.
+  
+  Un ingrédient invisible fait la moitié du travail : dans ℕ, toute inconnue est
+  positive ou nulle. C'est ce qui lui permet de conclure sur des énoncés faux sur ℤ.
+  
+  Elle décide \`≤\`, \`<\`, \`≥\`, \`>\` et \`=\` entre expressions linéaires : sommes,
+  différences, produits par une constante. Elle ne démontrera jamais \`mul_comm\` —
+  ce n'est pas de l'arithmétique linéaire.
+  
+  Deux honnêtetés sur cette implémentation. D'abord, elle raisonne sur les
+  **rationnels** : elle est donc correcte mais incomplète sur les entiers, alors que
+  le vrai \`omega\` fait de l'arithmétique entière. Ensuite, un monôme non linéaire
+  comme \`a * b\` est traité comme une inconnue opaque — le comportement de
+  \`linarith\`, un peu plus généreux que celui d'\`omega\`.
+  
+  Dans Mathlib, \`omega\` couvre ℕ et ℤ, \`linarith\` les corps ordonnés et accepte des
+  hypothèses supplémentaires (\`linarith [sq_nonneg x]\`), et \`nlinarith\` tente le
+  non-linéaire. Le réflexe à prendre : devant un objectif « évidemment vrai par
+  calcul sur des inégalités », essayer \`omega\` avant d'écrire quoi que ce soit.`,
+  },
 ];
 
 /** Notes de syntaxe : ce qu'il faut savoir lire avant d'ouvrir un fichier Lean. */
@@ -283,30 +359,3 @@ export const SYNTAX_NOTES = [
     body: `Pas de noyau, donc pas de terme de preuve vérifié. Unification du premier ordre seulement : les motifs d’ordre supérieur (\`?f x\`) ne s’unifient pas. Pas de classes de types, pas d’univers, pas de structures, un seul type de données (ℕ) et les propositions. \`ring\` et \`norm_num\` décident sans produire de certificat. Tout le reste — la façon de lire un objectif, le rôle des tactiques, la discipline des noms — se transfère tel quel au vrai Lean.`,
   },
 ];
-
-TACTIC_DOCS.push({
-  name: 'calc',
-  group: 'Structure',
-  world: 3,
-  syntax: ['calc a = b := by rw [h]', '_ = c := by rw [h2]', '_ = d := h3'],
-  doc: `La tactique qui rend une preuve lisible. Une chaîne d'égalités, chacune sur sa
-ligne, chacune justifiée après \`:=\` — par \`by <tactique>\` ou par un terme :
-
-\`\`\`
-calc (a + b) * c = a * c + b * c := by rw [add_mul]
-  _ = c * a + b * c := by rw [mul_comm a c]
-  _ = c * a + c * b := by rw [mul_comm b c]
-\`\`\`
-
-Le \`_\` reprend le membre droit de la ligne précédente : c'est ce qui donne à la
-preuve sa forme d'escalier. La transitivité de l'égalité est appliquée pour toi, et
-chaque étape est vérifiée séparément — donc une erreur est toujours localisée.
-
-Compare avec la même preuve en trois \`rw\` : le résultat est identique pour la
-machine, mais l'un s'explique et l'autre se rejoue. Mathlib est écrite en \`calc\`
-partout où le calcul compte plus que l'astuce.
-
-Ce moteur n'enchaîne que des égalités. Le vrai Lean accepte n'importe quelle
-relation transitive — \`≤\`, \`<\`, \`⊆\`, et même un mélange des trois, dont il
-déduit la relation finale.`,
-});

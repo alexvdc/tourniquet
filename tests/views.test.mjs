@@ -10,6 +10,7 @@ const { app } = installDom();
 const { renderAtlas, renderFeats } = await import('../js/ui/atlas.js');
 const { renderLevel } = await import('../js/ui/level.js');
 const { renderGrimoire, renderSandbox, PRESETS } = await import('../js/ui/grimoire.js');
+const { renderLexique } = await import('../js/ui/lexique.js');
 const { md, expandAbbrev } = await import('../js/ui/dom.js');
 const store = await import('../js/state.js');
 const { LEVELS } = await import('../js/content/index.js');
@@ -29,6 +30,16 @@ test('le Grimoire liste tactiques et lemmes', () => {
   assert.match(text, /Grimoire/);
   assert.match(text, /add_comm/);
   assert.match(text, /induction/);
+});
+
+test('le lexique explique les symboles et le vocabulaire', () => {
+  renderLexique(app);
+  const text = app.textContent;
+  assert.match(text, /Lexique/);
+  assert.match(text, /tourniquet/);
+  assert.match(text, /pour tout/);        // ∀
+  assert.match(text, /Curry–Howard/);
+  assert.match(text, /noyau/);
 });
 
 test('le bac à sable se rend avec un objectif par défaut', () => {
